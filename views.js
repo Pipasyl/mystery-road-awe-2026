@@ -1,237 +1,47 @@
 // ---------------------------------------------------------------------
-// GLOBAL STATE
+// views.js — every function that builds HTML and puts it on the page,
+// plus the click/change handlers tied directly to that HTML.
 // ---------------------------------------------------------------------
-var allEvidence = [];
-var filteredEvidence = [];
-var selectedEvidence = null;
-var bookmarks = [];
-var currentPage = "dashboard";
+// Rule used throughout this file: a function gets `export` only if a
+// DIFFERENT file genuinely calls it (main.js, mostly, for routing and
+// for the window-exposure bridge). Small helper functions that only
+// build a snippet of HTML for another function in this same file stay
+// private — nothing outside views.js needs to know they exist.
 
-var allPeople = [];
-var allLocations = [];
-var allTimeline = [];
-var caseData = {};
+import {
+  getAllEvidence,
+  getFilteredEvidenceList, setFilteredEvidenceList,
+  setSelectedEvidence,
+  getBookmarks, setBookmarks,
+  getCurrentPage,
+  getAllPeople, getAllLocations, getAllTimeline, getCaseData,
+  setCurrentPeopleTab,
+  getEvidenceViewLoading,
+  getViewRendered,
+  getNotesStore,
+  getModalCloseListenerCount, incrementModalCloseListenerCount,
+  STORAGE_KEY_HYPOTHESIS
+} from "./state.js";
 
-var currentPeopleTab = "people";
-var loadingStepsRemaining = 2; 
+import {
+  findEvidenceById, findPersonById, findLocationById,
+  evidenceMentionsPerson, formatDate,
+  getStatusBadgeClass, getRelevanceBadgeClass, certaintyBadgeClass,
+  getSelectedOptions, navigateTo
+} from "./utils.js";
 
-
-var evidenceViewLoading = true;
-
-
-var viewRendered = {
-  dashboard: false,
-  evidence: false,
-  people: false,
-  timeline: false,
-  workspace: false
-};
-
-var notesStore = {}; 
-var modalCloseListenerCount = 0; 
-
-var STORAGE_KEY_BOOKMARKS = "remotion_bookmarks";
-var STORAGE_KEY_NOTES = "remotion_notes";
-var STORAGE_KEY_HYPOTHESIS = "remotion_hypothesis";
-
-// ---------------------------------------------------------------------
-// DATA LOADING
-// ---------------------------------------------------------------------
-
-function showLoadingOverlay(msg) {
-  var overlay = document.getElementById("loadingOverlay");
-  var text = document.getElementById("loadingText");
-  if (text) text.textContent = msg;
-  if (overlay) overlay.classList.remove("hidden");
-}
-
-function hideLoadingStep() {
-  loadingStepsRemaining--;
-  if (loadingStepsRemaining <= 0) {
-    var overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.classList.add("hidden");
-  }
-}
-
-function loadCorePeopleAndLocations() {
-  return fetch("data/case.json").then(function (caseRes) {
-    return caseRes.json().then(function (caseJson) {
-      caseData = caseJson;
-
-      return fetch("data/people.json").then(function (peopleRes) {
-        return peopleRes.json().then(function (peopleJson) {
-          allPeople = peopleJson;
-
-          return fetch("data/locations.json").then(function (locationsRes) {
-            return locationsRes.json().then(function (locationsJson) {
-              allLocations = locationsJson;
-
-              hideLoadingStep();
-              renderDashboard();
-              populateAllDropdowns();
-            });
-          });
-        });
-      });
-    });
-  });
-}
-
-function loadEvidenceData() {
-  fetch("data/evidence.json")
-    .then(function (res) {
-      return res.json();
-    })
-    .then(function (data) {
-      allEvidence = data;
-      applyStoredBookmarkFlags();
-      filteredEvidence = allEvidence; 
-      renderDashboard();
-      populateAllDropdowns();
-      if (currentPage === "evidence") renderEvidenceList();
-    })
-    .catch(function (err) {
-      console.error("Failed to load evidence.json", err);
-      alert("Evidence could not be loaded. Some views may be incomplete.");
-    });
-}
-
-function loadTimelineData() {
-  return fetch("data/timeline.json")
-    .then(function (res) {
-      return res.json();
-    })
-    .then(function (data) {
-      allTimeline = data;
-      renderDashboard();
-      if (currentPage === "timeline") renderTimeline();
-      populateAllDropdowns();
-    })
-    .catch(function (err) {
-      console.log("timeline load error", err);
-    })
-    .finally(function () {
-      hideLoadingStep();
-    });
-}
-
-function loadAllData() {
-  showLoadingOverlay("Loading case file…");
-  loadingStepsRemaining = 2;
-  return loadCorePeopleAndLocations().then(function () {
-    loadEvidenceData();
-    loadTimelineData();
-  });
-}
-
-// ---------------------------------------------------------------------
-// GENERIC LOOKUP HELPERS
-// ---------------------------------------------------------------------
-
-function findEvidenceById(id) {
-  for (var i = 0; i < allEvidence.length; i++) {
-    if (allEvidence[i].id === id) return allEvidence[i];
-  }
-  return null;
-}
-
-function findPersonById(id) {
-  for (var i = 0; i < allPeople.length; i++) {
-    if (allPeople[i].id === id) return allPeople[i];
-  }
-  return null;
-}
-
-function findLocationById(id) {
-  for (var i = 0; i < allLocations.length; i++) {
-    if (allLocations[i].id === id) return allLocations[i];
-  }
-  return null;
-}
-
-function evidenceMentionsPerson(ev, person) {
-  if (!ev.personIds) return false;
-  return ev.personIds.indexOf(person.id) !== -1 || ev.personIds.indexOf(person.name) !== -1;
-}
-
-function formatDate(ts) {
-  if (!ts) return "Unknown date";
-  var d = new Date(ts);
-  if (isNaN(d.getTime())) return ts;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
-    " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-}
-
-function getStatusBadgeClass(status) {
-  var s = (status || "").toLowerCase();
-  if (s === "reviewed") return "badge-reviewed";
-  if (s === "flagged") return "badge-flagged";
-  return "badge-unreviewed";
-}
-
-function getRelevanceBadgeClass(relevance) {
-  var r = (relevance || "").toLowerCase();
-  if (r === "relevant") return "badge-relevant";
-  return "badge-unreviewed";
-}
-
-// ---------------------------------------------------------------------
-// NAVIGATION / HASH ROUTING
-// ---------------------------------------------------------------------
-
-function navigateTo(viewName) {
-  window.location.hash = viewName;
-  // handleHashChange() will pick this up via the hashchange listener
-}
-
-function handleHashChange() {
-  var hash = window.location.hash.replace("#", "");
-  var validViews = ["dashboard", "evidence", "people", "timeline", "workspace"];
-  if (validViews.indexOf(hash) === -1) {
-    hash = "dashboard";
-  }
-  currentPage = hash;
-
-  var sections = document.querySelectorAll(".view");
-  for (var i = 0; i < sections.length; i++) {
-    sections[i].classList.remove("active");
-  }
-  document.getElementById("view-" + hash).classList.add("active");
-
-  var navButtons = document.querySelectorAll(".nav-btn");
-  for (var n = 0; n < navButtons.length; n++) {
-    navButtons[n].classList.remove("active");
-    if (navButtons[n].getAttribute("data-view") === hash) {
-      navButtons[n].classList.add("active");
-    }
-  }
-
-  if (hash === "dashboard" && !viewRendered.dashboard) {
-    renderDashboard();
-    viewRendered.dashboard = true;
-  } else if (hash === "evidence" && !viewRendered.evidence) {
-    renderEvidenceList();
-    viewRendered.evidence = true;
-  } else if (hash === "people" && !viewRendered.people) {
-    renderPeople();
-    renderLocations();
-    viewRendered.people = true;
-  } else if (hash === "timeline" && !viewRendered.timeline) {
-    renderTimeline();
-    viewRendered.timeline = true;
-  } else if (hash === "workspace") {
-    // workspace is cheap enough that it always re-renders
-    renderWorkspace();
-  }
-}
+import { saveBookmarksToStorage, loadNoteForEvidence, saveNoteForEvidence } from "./api.js";
 
 // ---------------------------------------------------------------------
 // DASHBOARD
 // ---------------------------------------------------------------------
 
-function renderDashboard() {
+export function renderDashboard() {
   var container = document.getElementById("dashboardContent");
   if (!container) return;
+
+  var allEvidence = getAllEvidence();
+  var caseData = getCaseData();
 
   var reviewedCount = 0;
   for (var i = 0; i < allEvidence.length; i++) {
@@ -249,9 +59,9 @@ function renderDashboard() {
 
   html += '<div class="stat-grid">';
   html += statCardHTML(allEvidence.length, "Evidence items");
-  html += statCardHTML(allPeople.length, "People");
-  html += statCardHTML(allLocations.length, "Locations");
-  html += statCardHTML(bookmarks.length, "Bookmarked");
+  html += statCardHTML(getAllPeople().length, "People");
+  html += statCardHTML(getAllLocations().length, "Locations");
+  html += statCardHTML(getBookmarks().length, "Bookmarked");
   html += statCardHTML(reviewedCount, "Reviewed");
   html += "</div>";
 
@@ -276,7 +86,7 @@ function renderDashboard() {
   html += "</div>";
 
   html += '<div class="dashboard-panel"><h3>Recent timeline events</h3>';
-  var recentTimeline = allTimeline.slice(-5).reverse();
+  var recentTimeline = getAllTimeline().slice(-5).reverse();
   if (recentTimeline.length === 0) {
     html += "<p>No timeline events loaded yet.</p>";
   }
@@ -299,7 +109,7 @@ function statCardHTML(value, label) {
 // EVIDENCE CATALOGUE
 // ---------------------------------------------------------------------
 
-function populateAllDropdowns() {
+export function populateAllDropdowns() {
   populateEvidenceDropdowns();
   populateTimelineDropdowns();
   populateHypothesisDropdowns();
@@ -311,9 +121,10 @@ function populateEvidenceDropdowns() {
   var locationSelect = document.getElementById("filterLocation");
   if (!typeSelect || !personSelect || !locationSelect) return;
 
+  var evidence = getAllEvidence();
   var types = [];
-  for (var i = 0; i < allEvidence.length; i++) {
-    var t = allEvidence[i].type.toLowerCase();
+  for (var i = 0; i < evidence.length; i++) {
+    var t = evidence[i].type.toLowerCase();
     if (types.indexOf(t) === -1) types.push(t);
   }
   typeSelect.innerHTML = '<option value="">All types</option>';
@@ -321,17 +132,21 @@ function populateEvidenceDropdowns() {
     typeSelect.innerHTML += '<option value="' + types[ti] + '">' + types[ti] + "</option>";
   }
 
+  var people = getAllPeople();
   personSelect.innerHTML = '<option value="">All people</option>';
-  for (var p = 0; p < allPeople.length; p++) {
-    personSelect.innerHTML += '<option value="' + allPeople[p].id + '">' + allPeople[p].name + "</option>";
+  for (var p = 0; p < people.length; p++) {
+    personSelect.innerHTML += '<option value="' + people[p].id + '">' + people[p].name + "</option>";
   }
 
+  var locations = getAllLocations();
   locationSelect.innerHTML = '<option value="">All locations</option>';
-  for (var l = 0; l < allLocations.length; l++) {
-    locationSelect.innerHTML += '<option value="' + allLocations[l].id + '">' + allLocations[l].id + " - " + allLocations[l].name + "</option>";
+  for (var l = 0; l < locations.length; l++) {
+    locationSelect.innerHTML += '<option value="' + locations[l].id + '">' + locations[l].id + " - " + locations[l].name + "</option>";
   }
 }
 
+// Kept private (not exported) — same as the original, nothing outside
+// this file ever called it directly either.
 function getFilteredEvidence() {
   var searchBox = document.getElementById("evidenceSearch");
   var searchTerm = searchBox ? searchBox.value.toLowerCase().trim() : "";
@@ -341,9 +156,10 @@ function getFilteredEvidence() {
   var statusVal = document.getElementById("filterStatus").value;
   var relevanceVal = document.getElementById("filterRelevance").value;
 
+  var evidence = getAllEvidence();
   var results = [];
-  for (var i = 0; i < allEvidence.length; i++) {
-    var item = allEvidence[i];
+  for (var i = 0; i < evidence.length; i++) {
+    var item = evidence[i];
     var matches = true;
 
     if (searchTerm) {
@@ -362,16 +178,16 @@ function getFilteredEvidence() {
     if (matches) results.push(item);
   }
 
-  filteredEvidence = results;
+  setFilteredEvidenceList(results);
   return results;
 }
 
-function renderEvidenceList() {
+export function renderEvidenceList() {
   var container = document.getElementById("evidenceList");
   if (!container) return;
 
   var loadingIndicator = document.getElementById("evidenceLoadingIndicator");
-  if (evidenceViewLoading) {
+  if (getEvidenceViewLoading()) {
     if (loadingIndicator) loadingIndicator.classList.remove("hidden");
     container.innerHTML = "";
     return;
@@ -393,9 +209,8 @@ function renderEvidenceList() {
   container.addEventListener("click", handleEvidenceListClick);
 }
 
-
 function renderEvidenceCardHTML(ev) {
-  var isBookmarked = bookmarks.indexOf(ev.id) !== -1;
+  var isBookmarked = getBookmarks().indexOf(ev.id) !== -1;
   var html = '<div class="evidence-card" data-id="' + ev.id + '">';
   html += '<button class="bookmark-btn ' + (isBookmarked ? "active" : "") + '" data-action="bookmark" data-id="' + ev.id + '" aria-label="Toggle bookmark for ' + ev.title + '"><span class="bookmark-icon">' + (isBookmarked ? "★" : "☆") + "</span></button>";
   html += "<h3>" + ev.title + "</h3>";
@@ -435,49 +250,45 @@ function handleBookmarkClick(evidenceId) {
   var ev = findEvidenceById(evidenceId);
   if (!ev) return;
 
+  var bookmarks = getBookmarks();
   if (bookmarks.indexOf(evidenceId) === -1) {
     bookmarks.push(evidenceId);
     ev.bookmarked = true;
   } else {
-    bookmarks = bookmarks.filter(function (id) {
+    setBookmarks(bookmarks.filter(function (id) {
       return id !== evidenceId;
-    });
+    }));
     ev.bookmarked = false;
   }
   saveBookmarksToStorage();
-  if (currentPage === "evidence") renderEvidenceList();
+  if (getCurrentPage() === "evidence") renderEvidenceList();
 }
 
-function applyStoredBookmarkFlags() {
-  for (var i = 0; i < allEvidence.length; i++) {
-    allEvidence[i].bookmarked = bookmarks.indexOf(allEvidence[i].id) !== -1;
-  }
-}
-
-function handleSortChange() {
+export function handleSortChange() {
   var sortValue = document.getElementById("sortEvidence").value;
+  var filteredEvidenceList = getFilteredEvidenceList();
 
   if (sortValue === "title-asc") {
-    filteredEvidence.sort(function (a, b) {
+    filteredEvidenceList.sort(function (a, b) {
       return a.title.localeCompare(b.title);
     });
   } else if (sortValue === "title-desc") {
-    filteredEvidence.sort(function (a, b) {
+    filteredEvidenceList.sort(function (a, b) {
       return b.title.localeCompare(a.title);
     });
   } else if (sortValue === "date-asc") {
-    filteredEvidence.sort(function (a, b) {
+    filteredEvidenceList.sort(function (a, b) {
       return new Date(a.timestamp) - new Date(b.timestamp);
     });
   } else {
-    filteredEvidence.sort(function (a, b) {
+    filteredEvidenceList.sort(function (a, b) {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
   }
   renderEvidenceList();
 }
 
-function clearFilters() {
+export function clearFilters() {
   document.getElementById("evidenceSearch").value = "";
   document.getElementById("filterType").value = "";
   document.getElementById("filterPerson").value = "";
@@ -497,7 +308,7 @@ function simulateAsyncSearch(term) {
 
 var latestSearchRequestId = 0;
 
-function handleSearchInput(event) {
+export function handleSearchInput(event) {
   var term = event.target.value;
   var requestId = ++latestSearchRequestId;
 
@@ -515,7 +326,7 @@ function handleSearchInput(event) {
 function openEvidenceDetail(evidenceId) {
   var ev = findEvidenceById(evidenceId);
   if (!ev) return;
-  selectedEvidence = ev;
+  setSelectedEvidence(ev);
 
   var section = document.getElementById("evidenceDetailSection");
   section.classList.remove("hidden");
@@ -524,11 +335,11 @@ function openEvidenceDetail(evidenceId) {
   section.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function closeEvidenceDetail() {
+export function closeEvidenceDetail() {
   var section = document.getElementById("evidenceDetailSection");
   section.classList.add("hidden");
   section.innerHTML = "";
-  selectedEvidence = null;
+  setSelectedEvidence(null);
 }
 
 function renderEvidenceDetail(ev) {
@@ -596,12 +407,12 @@ function renderEvidenceDetail(ev) {
   document.getElementById("detailStatusSelect").addEventListener("change", function (e) {
     ev.status = e.target.value; // direct mutation of the loaded evidence object
     renderEvidenceDetail(ev);
-    if (viewRendered.evidence) renderEvidenceList();
+    if (getViewRendered().evidence) renderEvidenceList();
   });
   document.getElementById("detailRelevanceSelect").addEventListener("change", function (e) {
     ev.relevance = e.target.value;
     renderEvidenceDetail(ev);
-    if (viewRendered.evidence) renderEvidenceList();
+    if (getViewRendered().evidence) renderEvidenceList();
   });
 }
 
@@ -611,22 +422,22 @@ function statusOptionHTML(current, value, label) {
   return '<option value="' + value + '"' + selected + ">" + label + "</option>";
 }
 
-function saveCurrentNote() {
+export function saveCurrentNote() {
   var textarea = document.getElementById("evidenceNoteInput");
   if (!textarea) return;
-  var evidenceId = textarea.getAttribute("data-evidence-id"); // note id is read back off the DOM
+  var evidenceId = textarea.getAttribute("data-evidence-id");
   var text = textarea.value;
   saveNoteForEvidence(evidenceId, text);
   var preview = document.getElementById("notePreview");
-  if (preview) preview.innerHTML = text; // unsafe on purpose, see above
+  if (preview) preview.innerHTML = text; // unsafe on purpose, see original
 }
 
 // ---------------------------------------------------------------------
 // PEOPLE & LOCATIONS
 // ---------------------------------------------------------------------
 
-function switchPeopleTab(tab) {
-  currentPeopleTab = tab;
+export function switchPeopleTab(tab) {
+  setCurrentPeopleTab(tab);
   var peoplePanel = document.getElementById("peoplePanel");
   var locationsPanel = document.getElementById("locationsPanel");
   var peopleTabBtn = document.getElementById("tabPeopleBtn");
@@ -646,18 +457,20 @@ function switchPeopleTab(tab) {
 }
 
 function countEvidenceForPerson(person) {
+  var evidence = getAllEvidence();
   var count = 0;
-  for (var i = 0; i < allEvidence.length; i++) {
-    if (evidenceMentionsPerson(allEvidence[i], person)) count++;
+  for (var i = 0; i < evidence.length; i++) {
+    if (evidenceMentionsPerson(evidence[i], person)) count++;
   }
   return count;
 }
 
-function renderPeople() {
+export function renderPeople() {
   var container = document.getElementById("peoplePanel");
+  var people = getAllPeople();
   var html = "";
-  for (var i = 0; i < allPeople.length; i++) {
-    var person = allPeople[i];
+  for (var i = 0; i < people.length; i++) {
+    var person = people[i];
     var count = countEvidenceForPerson(person);
 
     html += '<div class="person-card">';
@@ -691,11 +504,12 @@ function renderPeople() {
   }
 }
 
-function renderLocations() {
+export function renderLocations() {
   var container = document.getElementById("locationsPanel");
+  var locations = getAllLocations();
   var html = "";
-  for (var i = 0; i < allLocations.length; i++) {
-    var loc = allLocations[i];
+  for (var i = 0; i < locations.length; i++) {
+    var loc = locations[i];
     html += '<div class="location-card">';
     html += "<h3>" + loc.id + " &mdash; " + loc.name + "</h3>";
     html += "<p>" + loc.description + "</p>";
@@ -718,19 +532,22 @@ function populateTimelineDropdowns() {
   var typeSelect = document.getElementById("timelineTypeFilter");
   if (!personSelect || !locationSelect || !typeSelect) return;
 
+  var people = getAllPeople();
   personSelect.innerHTML = '<option value="">All people</option>';
-  for (var p = 0; p < allPeople.length; p++) {
-    personSelect.innerHTML += '<option value="' + allPeople[p].id + '">' + allPeople[p].name + "</option>";
+  for (var p = 0; p < people.length; p++) {
+    personSelect.innerHTML += '<option value="' + people[p].id + '">' + people[p].name + "</option>";
   }
 
+  var locations = getAllLocations();
   locationSelect.innerHTML = '<option value="">All locations</option>';
-  for (var l = 0; l < allLocations.length; l++) {
-    locationSelect.innerHTML += '<option value="' + allLocations[l].id + '">' + allLocations[l].id + "</option>";
+  for (var l = 0; l < locations.length; l++) {
+    locationSelect.innerHTML += '<option value="' + locations[l].id + '">' + locations[l].id + "</option>";
   }
 
+  var timeline = getAllTimeline();
   var types = [];
-  for (var i = 0; i < allTimeline.length; i++) {
-    if (types.indexOf(allTimeline[i].type) === -1) types.push(allTimeline[i].type);
+  for (var i = 0; i < timeline.length; i++) {
+    if (types.indexOf(timeline[i].type) === -1) types.push(timeline[i].type);
   }
   typeSelect.innerHTML = '<option value="">All event types</option>';
   for (var t = 0; t < types.length; t++) {
@@ -738,7 +555,7 @@ function populateTimelineDropdowns() {
   }
 }
 
-function renderTimeline() {
+export function renderTimeline() {
   var container = document.getElementById("timelineContainer");
   if (!container) return;
 
@@ -747,6 +564,7 @@ function renderTimeline() {
   var locationFilter = document.getElementById("timelineLocationFilter").value;
   var typeFilter = document.getElementById("timelineTypeFilter").value;
 
+  var allTimeline = getAllTimeline();
   var events = [];
   for (var i = 0; i < allTimeline.length; i++) {
     var evt = allTimeline[i];
@@ -796,13 +614,6 @@ function renderTimeline() {
   }
 }
 
-function certaintyBadgeClass(certainty) {
-  if (certainty === "confirmed") return "reviewed";
-  if (certainty === "contradictory") return "critical";
-  if (certainty === "reported") return "flagged";
-  return "unreviewed";
-}
-
 // --- Quick-view modal (used from the timeline) -------------------------
 function openEvidenceModal(evidenceId) {
   var ev = findEvidenceById(evidenceId);
@@ -824,8 +635,8 @@ function openEvidenceModal(evidenceId) {
     '<button type="button" class="btn btn-primary btn-small" data-open-full="' + ev.id + '">Open full evidence</button>' +
     "</div></div>";
 
-  modalCloseListenerCount++;
-  console.log("modal opened, active close listeners:", modalCloseListenerCount);
+  incrementModalCloseListenerCount();
+  console.log("modal opened, active close listeners:", getModalCloseListenerCount());
 
   modal.addEventListener("click", function (e) {
     if (e.target.classList.contains("modal-close-btn") || e.target.classList.contains("modal-backdrop")) {
@@ -845,7 +656,7 @@ function openEvidenceModal(evidenceId) {
 // WORKSPACE
 // ---------------------------------------------------------------------
 
-function renderWorkspace() {
+export function renderWorkspace() {
   renderBookmarksList();
   renderNotesList();
   populateHypothesisDropdowns();
@@ -856,7 +667,7 @@ function renderBookmarksList() {
   var container = document.getElementById("bookmarksList");
   if (!container) return;
 
-  var bookmarkedItems = allEvidence.filter(function (ev) {
+  var bookmarkedItems = getAllEvidence().filter(function (ev) {
     return ev.bookmarked;
   });
 
@@ -889,11 +700,13 @@ function renderNotesList() {
   var container = document.getElementById("notesList");
   if (!container) return;
 
+  var notesStore = getNotesStore();
+  var evidence = getAllEvidence();
   var noteEntries = [];
-  for (var i = 0; i < allEvidence.length; i++) {
-    var note = notesStore[allEvidence[i].id];
+  for (var i = 0; i < evidence.length; i++) {
+    var note = notesStore[evidence[i].id];
     if (note) {
-      noteEntries.push({ index: i, evidenceId: allEvidence[i].id, title: allEvidence[i].title, text: note });
+      noteEntries.push({ index: i, evidenceId: evidence[i].id, title: evidence[i].title, text: note });
     }
   }
 
@@ -916,20 +729,22 @@ function populateHypothesisDropdowns() {
   var evidenceSelect = document.getElementById("hypEvidence");
   if (!suspectSelect || !evidenceSelect) return;
 
+  var people = getAllPeople();
   var currentSuspect = suspectSelect.value;
   suspectSelect.innerHTML = '<option value="">Select a person…</option>';
-  for (var p = 0; p < allPeople.length; p++) {
-    suspectSelect.innerHTML += '<option value="' + allPeople[p].id + '">' + allPeople[p].name + "</option>";
+  for (var p = 0; p < people.length; p++) {
+    suspectSelect.innerHTML += '<option value="' + people[p].id + '">' + people[p].name + "</option>";
   }
   suspectSelect.value = currentSuspect;
 
+  var evidence = getAllEvidence();
   evidenceSelect.innerHTML = "";
-  for (var i = 0; i < allEvidence.length; i++) {
-    evidenceSelect.innerHTML += '<option value="' + allEvidence[i].id + '">' + allEvidence[i].id + " - " + allEvidence[i].title + "</option>";
+  for (var i = 0; i < evidence.length; i++) {
+    evidenceSelect.innerHTML += '<option value="' + evidence[i].id + '">' + evidence[i].id + " - " + evidence[i].title + "</option>";
   }
 }
 
-function saveHypothesis() {
+export function saveHypothesis() {
   var draft = {
     suspectId: document.getElementById("hypSuspect").value,
     nature: document.getElementById("hypNature").value,
@@ -955,19 +770,11 @@ function saveHypothesis() {
   }, 2000);
 }
 
-function getSelectedOptions(selectEl) {
-  var result = [];
-  for (var i = 0; i < selectEl.options.length; i++) {
-    if (selectEl.options[i].selected) result.push(selectEl.options[i].value);
-  }
-  return result;
-}
-
 function loadHypothesisFromStorage() {
   var raw = localStorage.getItem(STORAGE_KEY_HYPOTHESIS);
   if (!raw) return;
 
-  var draft = JSON.parse(raw); 
+  var draft = JSON.parse(raw);
 
   document.getElementById("hypSuspect").value = draft.suspectId || "";
   document.getElementById("hypNature").value = draft.nature || "";
@@ -982,104 +789,3 @@ function loadHypothesisFromStorage() {
     evidenceSelect.options[i].selected = savedIds.indexOf(evidenceSelect.options[i].value) !== -1;
   }
 }
-
-// ---------------------------------------------------------------------
-// LOCAL STORAGE HELPERS (bookmarks & notes)
-// ---------------------------------------------------------------------
-
-function saveBookmarksToStorage() {
-  localStorage.setItem(STORAGE_KEY_BOOKMARKS, JSON.stringify(bookmarks));
-}
-
-function loadBookmarksFromStorage() {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY_BOOKMARKS);
-    var parsed = raw ? JSON.parse(raw) : [];
-    bookmarks = Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn("Could not read stored bookmarks, starting empty", err);
-    bookmarks = [];
-  }
-}
-
-function saveNoteForEvidence(evidenceId, text) {
-  notesStore[evidenceId] = text;
-  localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notesStore));
-}
-
-function loadNoteForEvidence(evidenceId) {
-  return notesStore[evidenceId] || "";
-}
-
-function loadNotesFromStorage() {
-  var raw = localStorage.getItem(STORAGE_KEY_NOTES);
-  if (!raw) {
-    notesStore = {};
-    return;
-  }
-
-  notesStore = JSON.parse(raw);
-}
-
-function loadNoteAsync(evidenceId) {
-  return new Promise(function (resolve) {
-    resolve(notesStore[evidenceId] || "");
-  });
-}
-
-// ---------------------------------------------------------------------
-// EVENT LISTENER SETUP
-// ---------------------------------------------------------------------
-
-function setupEventListeners() {
-  window.addEventListener("hashchange", handleHashChange);
-
-  var navButtons = document.querySelectorAll(".nav-btn");
-  for (var i = 0; i < navButtons.length; i++) {
-    navButtons[i].addEventListener("click", function () {
-      var targetView = navButtons[i].getAttribute("data-view");
-      console.log("nav clicked:", targetView);
-    });
-  }
-
-  document.getElementById("evidenceSearch").addEventListener("input", handleSearchInput);
-
-  document.getElementById("filterType").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterPerson").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterLocation").addEventListener("change", renderEvidenceList);
-
-  document.getElementById("filterStatus").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterStatus").setAttribute("onchange", "renderEvidenceList()");
-
-  document.getElementById("filterRelevance").addEventListener("change", renderEvidenceList);
-
-  document.getElementById("clearFiltersBtn").addEventListener("click", clearFilters);
-
-  document.getElementById("timelineOrder").addEventListener("change", renderTimeline);
-  document.getElementById("timelinePersonFilter").addEventListener("change", renderTimeline);
-  document.getElementById("timelineLocationFilter").addEventListener("change", renderTimeline);
-  document.getElementById("timelineTypeFilter").addEventListener("change", renderTimeline);
-
-  document.getElementById("hypConfidence").addEventListener("input", function (e) {
-    document.getElementById("hypConfidenceValue").textContent = e.target.value;
-  });
-}
-
-// ---------------------------------------------------------------------
-// INIT
-// ---------------------------------------------------------------------
-
-function initApp() {
-  loadBookmarksFromStorage();
-  loadNotesFromStorage();
-  setupEventListeners();
-
-  loadAllData().then(function () {
-    handleHashChange();
-    var firstNote = loadNoteAsync("E01");
-    console.log("First note preview:", firstNote);
-  });
-}
-
-window.addEventListener("DOMContentLoaded", initApp);
-window.addEventListener("hashchange", handleHashChange);
