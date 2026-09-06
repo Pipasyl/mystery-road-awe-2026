@@ -19,6 +19,7 @@ import {
   getBookmarks,
   setBookmarks,
   setFilteredEvidenceList,
+  setEvidenceViewLoading,
   getNotesStore,
   setNotesStore,
   decrementLoadingSteps,
@@ -80,12 +81,12 @@ export function loadEvidenceData(onComplete) {
     })
     .then(function (data) {
       setAllEvidence(data);
+      setEvidenceViewLoading(false);
       applyStoredBookmarkFlags();
       // NOTE: this points filteredEvidenceList at the SAME array as
       // allEvidence, it does not copy it — exactly like the original
-      // `filteredEvidence = allEvidence;` line. Not fixing that here,
-      // pure refactor only. Keep this in your back pocket for Demo 2.
-      setFilteredEvidenceList(getAllEvidence());
+      // `filteredEvidence = allEvidence;` line. Fixed for Demo 2.
+      setFilteredEvidenceList(getAllEvidence().slice());
       if (onComplete) onComplete();
     })
     .catch(function (err) {
