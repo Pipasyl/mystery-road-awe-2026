@@ -191,19 +191,19 @@ function setupEventListeners() {
 // Init
 // -------------------------------------------------------------------------
 
-function initApp() {
+// Pause here until all case data has finished loading before continuing.
+async function initApp() {
   loadBookmarksFromStorage();
   loadNotesFromStorage();
   setupEventListeners();
 
-  loadAllData().then(function () {
-    handleHashChange();
-    // Kept exactly as in the original: loadNoteAsync() returns a Promise,
-    // so this logs a pending Promise object, not the actual note text.
-    // Not fixing it here — pure refactor only.
-    var firstNote = loadNoteAsync("E01");
-    console.log("First note preview:", firstNote);
-  });
+  await loadAllData();
+  handleHashChange();
+
+  // Previously logged the Promise object itself instead of its resolved
+  // value. Using await here ensures firstNote holds the actual note text.
+  var firstNote = await loadNoteAsync("E01");
+  console.log("First note preview:", firstNote);
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
