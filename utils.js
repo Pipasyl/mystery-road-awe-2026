@@ -36,14 +36,14 @@ export function evidenceMentionsPerson(ev, person) {
   if (!ev.personIds) return false;
   return ev.personIds.indexOf(person.id) !== -1 || ev.personIds.indexOf(person.name) !== -1;
 }
-
-export function formatDate(ts) {
+//task10
+export const formatDate = (ts) => {
   if (!ts) return "Unknown date";
-  const d = new Date(ts); // never reassigned -> const
+  const d = new Date(ts);
   if (isNaN(d.getTime())) return ts;
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
     " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-}
+};
 
 export function getStatusBadgeClass(status) {
   const s = (status || "").toLowerCase(); // never reassigned -> const

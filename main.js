@@ -149,10 +149,10 @@ function setupEventListeners() {
   document.getElementById("timelinePersonFilter").addEventListener("change", renderTimeline);
   document.getElementById("timelineLocationFilter").addEventListener("change", renderTimeline);
   document.getElementById("timelineTypeFilter").addEventListener("change", renderTimeline);
-
-  document.getElementById("hypConfidence").addEventListener("input", function (e) {
-    document.getElementById("hypConfidenceValue").textContent = e.target.value;
-  });
+//task 10
+  document.getElementById("hypConfidence").addEventListener("input", (e) => {
+  document.getElementById("hypConfidenceValue").textContent = e.target.value;
+});
 }
 
 // Demo 3 fix: was a plain function using loadNoteAsync("E01") without
