@@ -177,11 +177,23 @@ function getFilteredEvidence() {
     if (matches) results.push(item);
   }
 
+  const sortSelect = document.getElementById("sortEvidence");
+  const sortValue = sortSelect ? sortSelect.value : "date-desc";
+  if (sortValue === "title-asc") {
+    results.sort(function (a, b) { return a.title.localeCompare(b.title); });
+  } else if (sortValue === "title-desc") {
+    results.sort(function (a, b) { return b.title.localeCompare(a.title); });
+  } else if (sortValue === "date-asc") {
+    results.sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+  } else {
+    results.sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+  }
   setFilteredEvidenceList(results);
   return results;
 }
 
 export function renderEvidenceList() {
+  console.log("render ran");
   const container = document.getElementById("evidenceList");
   if (!container) return;
 
@@ -203,7 +215,7 @@ export function renderEvidenceList() {
     html += renderEvidenceCardHTML(results[i]);
   }
   container.innerHTML = html;
-
+  container.removeEventListener("click", handleEvidenceListClick);
   container.addEventListener("click", handleEvidenceListClick);
 }
 

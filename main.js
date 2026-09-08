@@ -140,7 +140,6 @@ function setupEventListeners() {
   // inline onchange string. Already this way in the original code.
   // Not fixing it here, flagged for the bug hunts.
   document.getElementById("filterStatus").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterStatus").setAttribute("onchange", "renderEvidenceList()");
 
   document.getElementById("filterRelevance").addEventListener("change", renderEvidenceList);
 
