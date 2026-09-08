@@ -16,22 +16,27 @@
 // Converting var -> let/const is a separate, later task. Don't touch
 // it here.
 
-var allEvidence = [];
-var filteredEvidenceList = [];
-var selectedEvidence = null;
-var bookmarks = [];
-var currentPage = "dashboard";
+// let: every one of these gets reassigned later through its setter
+// function (e.g. setAllEvidence replaces the whole array with new data).
+let allEvidence = [];
+let filteredEvidenceList = [];
+let selectedEvidence = null;
+let bookmarks = [];
+let currentPage = "dashboard";
 
-var allPeople = [];
-var allLocations = [];
-var allTimeline = [];
-var caseData = {};
+let allPeople = [];
+let allLocations = [];
+let allTimeline = [];
+let caseData = {};
 
-var currentPeopleTab = "people";
-var loadingStepsRemaining = 2;
-var evidenceViewLoading = true;
+let currentPeopleTab = "people";
+let loadingStepsRemaining = 2;
+let evidenceViewLoading = true;
 
-var viewRendered = {
+// const: this object itself is never replaced with a new object — only
+// individual properties inside it change (see markViewRendered below),
+// so the variable binding itself never needs reassigning.
+const viewRendered = {
   dashboard: false,
   evidence: false,
   people: false,
@@ -39,8 +44,8 @@ var viewRendered = {
   workspace: false
 };
 
-var notesStore = {};
-var modalCloseListenerCount = 0;
+let notesStore = {};
+let modalCloseListenerCount = 0;
 
 // These three never change while the app runs, so exporting them
 // directly as `const` is safe — any file can just read the value,

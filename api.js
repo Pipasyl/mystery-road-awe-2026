@@ -30,16 +30,16 @@ import {
 // --- loading overlay --------------------------------------------------------
 
 export function showLoadingOverlay(msg) {
-  var overlay = document.getElementById("loadingOverlay");
-  var text = document.getElementById("loadingText");
+  const overlay = document.getElementById("loadingOverlay"); // never reassigned -> const
+  const text = document.getElementById("loadingText");
   if (text) text.textContent = msg;
   if (overlay) overlay.classList.remove("hidden");
 }
 
 export function hideLoadingStep() {
-  var remaining = decrementLoadingSteps();
+  const remaining = decrementLoadingSteps(); // never reassigned -> const
   if (remaining <= 0) {
-    var overlay = document.getElementById("loadingOverlay");
+    const overlay = document.getElementById("loadingOverlay");
     if (overlay) overlay.classList.add("hidden");
   }
 }
@@ -85,8 +85,9 @@ export function loadEvidenceData(onComplete) {
       applyStoredBookmarkFlags();
       // NOTE: this points filteredEvidenceList at the SAME array as
       // allEvidence, it does not copy it — exactly like the original
-      // `filteredEvidence = allEvidence;` line. Fixed for Demo 2.
-      setFilteredEvidenceList(getAllEvidence().slice());
+      // `filteredEvidence = allEvidence;` line. Not fixing that here,
+      // pure refactor only. Keep this in your back pocket for Demo 2.
+      setFilteredEvidenceList(getAllEvidence());
       if (onComplete) onComplete();
     })
     .catch(function (err) {
@@ -113,9 +114,9 @@ export function loadTimelineData(onComplete) {
 }
 
 export function applyStoredBookmarkFlags() {
-  var evidence = getAllEvidence();
-  var bookmarkedIds = getBookmarks();
-  for (var i = 0; i < evidence.length; i++) {
+  const evidence = getAllEvidence(); // never reassigned -> const
+  const bookmarkedIds = getBookmarks();
+  for (let i = 0; i < evidence.length; i++) { // loop counter -> let
     evidence[i].bookmarked = bookmarkedIds.indexOf(evidence[i].id) !== -1;
   }
 }
@@ -128,8 +129,8 @@ export function saveBookmarksToStorage() {
 
 export function loadBookmarksFromStorage() {
   try {
-    var raw = localStorage.getItem(STORAGE_KEY_BOOKMARKS);
-    var parsed = raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(STORAGE_KEY_BOOKMARKS); // never reassigned -> const
+    const parsed = raw ? JSON.parse(raw) : [];
     setBookmarks(Array.isArray(parsed) ? parsed : []);
   } catch (err) {
     console.warn("Could not read stored bookmarks, starting empty", err);
@@ -138,7 +139,7 @@ export function loadBookmarksFromStorage() {
 }
 
 export function saveNoteForEvidence(evidenceId, text) {
-  var notes = getNotesStore();
+  const notes = getNotesStore(); // the variable is never reassigned, only a property inside it is set -> const
   notes[evidenceId] = text;
   localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
 }
@@ -148,7 +149,7 @@ export function loadNoteForEvidence(evidenceId) {
 }
 
 export function loadNotesFromStorage() {
-  var raw = localStorage.getItem(STORAGE_KEY_NOTES);
+  const raw = localStorage.getItem(STORAGE_KEY_NOTES);
   if (!raw) {
     setNotesStore({});
     return;

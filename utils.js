@@ -9,24 +9,24 @@
 import { getAllEvidence, getAllPeople, getAllLocations } from "./state.js";
 
 export function findEvidenceById(id) {
-  var list = getAllEvidence();
-  for (var i = 0; i < list.length; i++) {
+  const list = getAllEvidence(); // never reassigned -> const
+  for (let i = 0; i < list.length; i++) { // loop counter, reassigned every pass -> let
     if (list[i].id === id) return list[i];
   }
   return null;
 }
 
 export function findPersonById(id) {
-  var list = getAllPeople();
-  for (var i = 0; i < list.length; i++) {
+  const list = getAllPeople();
+  for (let i = 0; i < list.length; i++) {
     if (list[i].id === id) return list[i];
   }
   return null;
 }
 
 export function findLocationById(id) {
-  var list = getAllLocations();
-  for (var i = 0; i < list.length; i++) {
+  const list = getAllLocations();
+  for (let i = 0; i < list.length; i++) {
     if (list[i].id === id) return list[i];
   }
   return null;
@@ -39,21 +39,21 @@ export function evidenceMentionsPerson(ev, person) {
 
 export function formatDate(ts) {
   if (!ts) return "Unknown date";
-  var d = new Date(ts);
+  const d = new Date(ts); // never reassigned -> const
   if (isNaN(d.getTime())) return ts;
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
     " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
 export function getStatusBadgeClass(status) {
-  var s = (status || "").toLowerCase();
+  const s = (status || "").toLowerCase(); // never reassigned -> const
   if (s === "reviewed") return "badge-reviewed";
   if (s === "flagged") return "badge-flagged";
   return "badge-unreviewed";
 }
 
 export function getRelevanceBadgeClass(relevance) {
-  var r = (relevance || "").toLowerCase();
+  const r = (relevance || "").toLowerCase();
   if (r === "relevant") return "badge-relevant";
   return "badge-unreviewed";
 }
@@ -66,8 +66,8 @@ export function certaintyBadgeClass(certainty) {
 }
 
 export function getSelectedOptions(selectEl) {
-  var result = [];
-  for (var i = 0; i < selectEl.options.length; i++) {
+  const result = []; // the array itself is never reassigned, only pushed into -> const
+  for (let i = 0; i < selectEl.options.length; i++) {
     if (selectEl.options[i].selected) result.push(selectEl.options[i].value);
   }
   return result;

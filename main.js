@@ -1,8 +1,6 @@
 // ---------------------------------------------------------------------
 // main.js — the entry point. This is the ONLY file the browser loads
 // directly (see index.html: <script type="module" src="main.js">).
-// Its job: import everything else, wire up the router and every event
-// listener, and kick the app off once the page has loaded.
 // ---------------------------------------------------------------------
 
 import {
@@ -42,24 +40,9 @@ import {
   saveCurrentNote
 } from "./views.js";
 
-// -------------------------------------------------------------------------
-// Bridge to inline onclick="..." handlers
-// -------------------------------------------------------------------------
-// index.html (and a couple of HTML strings views.js generates, like the
-// evidence detail's Close button) still call functions the old way:
-//   <button onclick="navigateTo('dashboard')">
-// Inline onclick attributes run as plain, old-school global JavaScript —
-// they look the function name up on `window`. They have no idea our
-// modules even exist, so import/export doesn't help them at all.
-// Without these lines, clicking any of these buttons throws:
-//   "Uncaught ReferenceError: navigateTo is not defined"
-// renderEvidenceList is on this list for a less obvious reason: the
-// filterStatus dropdown in index.html is wired up TWICE in the original
-// code (see setupEventListeners below) — once with addEventListener,
-// and once with a hand-written onchange="renderEvidenceList()" string.
-// That second one needs this same bridge or it throws on every change.
-// Every OTHER click in this app uses addEventListener instead, and none
-// of those need this treatment.
+// Bridge for inline onclick="..." attributes in index.html and in HTML
+// strings views.js generates — those run as plain global JavaScript and
+// can't see our module exports, so they need these on `window` directly.
 window.navigateTo = navigateTo;
 window.switchPeopleTab = switchPeopleTab;
 window.handleSortChange = handleSortChange;
@@ -67,14 +50,6 @@ window.saveHypothesis = saveHypothesis;
 window.closeEvidenceDetail = closeEvidenceDetail;
 window.saveCurrentNote = saveCurrentNote;
 window.renderEvidenceList = renderEvidenceList;
-
-// -------------------------------------------------------------------------
-// Data loading orchestration
-// -------------------------------------------------------------------------
-// api.js only knows how to fetch things and store them in state.js — it
-// deliberately has no idea views.js exists. Deciding what to render once
-// each fetch resolves happens here instead, via callbacks, which is why
-// api.js's loader functions take an onComplete parameter.
 
 function loadAllData() {
   showLoadingOverlay("Loading case file…");
@@ -98,33 +73,29 @@ function loadAllData() {
   });
 }
 
-// -------------------------------------------------------------------------
-// Hash-based routing
-// -------------------------------------------------------------------------
-
 function handleHashChange() {
-  var hash = window.location.hash.replace("#", "");
-  var validViews = ["dashboard", "evidence", "people", "timeline", "workspace"];
+  let hash = window.location.hash.replace("#", ""); // reassigned below if invalid -> let
+  const validViews = ["dashboard", "evidence", "people", "timeline", "workspace"]; // never reassigned -> const
   if (validViews.indexOf(hash) === -1) {
     hash = "dashboard";
   }
   setCurrentPage(hash);
 
-  var sections = document.querySelectorAll(".view");
-  for (var i = 0; i < sections.length; i++) {
+  const sections = document.querySelectorAll(".view");
+  for (let i = 0; i < sections.length; i++) { // loop counter -> let
     sections[i].classList.remove("active");
   }
   document.getElementById("view-" + hash).classList.add("active");
 
-  var navButtons = document.querySelectorAll(".nav-btn");
-  for (var n = 0; n < navButtons.length; n++) {
+  const navButtons = document.querySelectorAll(".nav-btn");
+  for (let n = 0; n < navButtons.length; n++) {
     navButtons[n].classList.remove("active");
     if (navButtons[n].getAttribute("data-view") === hash) {
       navButtons[n].classList.add("active");
     }
   }
 
-  var viewRendered = getViewRendered();
+  const viewRendered = getViewRendered();
 
   if (hash === "dashboard" && !viewRendered.dashboard) {
     renderDashboard();
@@ -140,22 +111,21 @@ function handleHashChange() {
     renderTimeline();
     markViewRendered("timeline");
   } else if (hash === "workspace") {
-    // workspace is cheap enough that it always re-renders
     renderWorkspace();
   }
 }
 
-// -------------------------------------------------------------------------
-// Event listener setup
-// -------------------------------------------------------------------------
-
 function setupEventListeners() {
   window.addEventListener("hashchange", handleHashChange);
 
-  var navButtons = document.querySelectorAll(".nav-btn");
+  const navButtons = document.querySelectorAll(".nav-btn"); // never reassigned -> const
+  // Demo 4 fix: was `var i` — one shared counter meant every button's
+  // click listener read whatever `i` ended up at AFTER the loop finished
+  // (past the last valid index), crashing on click. `let` gives each
+  // loop pass its own separate copy of `i`.
   for (let i = 0; i < navButtons.length; i++) {
     navButtons[i].addEventListener("click", function () {
-      var targetView = navButtons[i].getAttribute("data-view");
+      const targetView = navButtons[i].getAttribute("data-view");
       console.log("nav clicked:", targetView);
     });
   }
@@ -166,10 +136,9 @@ function setupEventListeners() {
   document.getElementById("filterPerson").addEventListener("change", renderEvidenceList);
   document.getElementById("filterLocation").addEventListener("change", renderEvidenceList);
 
-  // NOTE: filterStatus gets wired up TWICE right here — once with
-  // addEventListener, once with setAttribute("onchange", ...). That was
-  // already this weird in the original code. Not touching it in this
-  // demo (pure refactor only) — keep it in mind for the bug hunts.
+  // NOTE: filterStatus is wired up TWICE — addEventListener AND an
+  // inline onchange string. Already this way in the original code.
+  // Not fixing it here, flagged for the bug hunts.
   document.getElementById("filterStatus").addEventListener("change", renderEvidenceList);
   document.getElementById("filterStatus").setAttribute("onchange", "renderEvidenceList()");
 
@@ -187,11 +156,9 @@ function setupEventListeners() {
   });
 }
 
-// -------------------------------------------------------------------------
-// Init
-// -------------------------------------------------------------------------
-
-// Pause here until all case data has finished loading before continuing.
+// Demo 3 fix: was a plain function using loadNoteAsync("E01") without
+// await, so it logged the Promise object itself instead of the resolved
+// note text. `async` + `await` here makes it wait for the real value.
 async function initApp() {
   loadBookmarksFromStorage();
   loadNotesFromStorage();
@@ -200,9 +167,7 @@ async function initApp() {
   await loadAllData();
   handleHashChange();
 
-  // Previously logged the Promise object itself instead of its resolved
-  // value. Using await here ensures firstNote holds the actual note text.
-  var firstNote = await loadNoteAsync("E01");
+  const firstNote = await loadNoteAsync("E01");
   console.log("First note preview:", firstNote);
 }
 
