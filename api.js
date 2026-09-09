@@ -51,27 +51,25 @@ export function hideLoadingStep() {
 // nesting shape here, only swapping global-variable writes for state.js
 // setters and render calls for the onComplete callback.
 
-export function loadCorePeopleAndLocations(onComplete) {
-  return fetch("data/case.json").then(function (caseRes) {
-    return caseRes.json().then(function (caseJson) {
-      setCaseData(caseJson);
+// Demo 9: was 3 levels of nested .then() calls (case -> people -> locations,
+// each waiting for the previous to finish). Converted to async/await —
+// exact same sequential behavior (still one request after another, not
+// parallel; that optimization is a later exercise), just linear to read.
+export async function loadCorePeopleAndLocations(onComplete) {
+  const caseRes = await fetch("data/case.json");
+  const caseJson = await caseRes.json();
+  setCaseData(caseJson);
 
-      return fetch("data/people.json").then(function (peopleRes) {
-        return peopleRes.json().then(function (peopleJson) {
-          setAllPeople(peopleJson);
+  const peopleRes = await fetch("data/people.json");
+  const peopleJson = await peopleRes.json();
+  setAllPeople(peopleJson);
 
-          return fetch("data/locations.json").then(function (locationsRes) {
-            return locationsRes.json().then(function (locationsJson) {
-              setAllLocations(locationsJson);
+  const locationsRes = await fetch("data/locations.json");
+  const locationsJson = await locationsRes.json();
+  setAllLocations(locationsJson);
 
-              hideLoadingStep();
-              if (onComplete) onComplete();
-            });
-          });
-        });
-      });
-    });
-  });
+  hideLoadingStep();
+  if (onComplete) onComplete();
 }
 
 export function loadEvidenceData(onComplete) {
@@ -96,21 +94,19 @@ export function loadEvidenceData(onComplete) {
     });
 }
 
-export function loadTimelineData(onComplete) {
-  return fetch("data/timeline.json")
-    .then(function (res) {
-      return res.json();
-    })
-    .then(function (data) {
-      setAllTimeline(data);
-      if (onComplete) onComplete();
-    })
-    .catch(function (err) {
-      console.log("timeline load error", err);
-    })
-    .finally(function () {
-      hideLoadingStep();
-    });
+// Demo 9: second conversion — .then()/.catch()/.finally() rewritten as
+// async/await with try/catch/finally, same error handling preserved.
+export async function loadTimelineData(onComplete) {
+  try {
+    const res = await fetch("data/timeline.json");
+    const data = await res.json();
+    setAllTimeline(data);
+    if (onComplete) onComplete();
+  } catch (err) {
+    console.log("timeline load error", err);
+  } finally {
+    hideLoadingStep();
+  }
 }
 
 export function applyStoredBookmarkFlags() {
