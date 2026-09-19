@@ -58,7 +58,7 @@ export const formatDate = (ts?: string | null) => {
   );
 };
 
-  export function getStatusBadgeClass(status?: string | null) {
+export function getStatusBadgeClass(status?: string | null) {
   const s = (status || "").toLowerCase(); // never reassigned -> const
   if (s === "reviewed") return "badge-reviewed";
   if (s === "flagged") return "badge-flagged";
@@ -78,7 +78,7 @@ export function certaintyBadgeClass(certainty: string) {
   return "unreviewed";
 }
 
-	export function getSelectedOptions(selectEl: HTMLSelectElement) {
+export function getSelectedOptions(selectEl: HTMLSelectElement) {
   const result = []; // the array itself is never reassigned, only pushed into -> const
   for (let i = 0; i < selectEl.options.length; i++) {
     if (selectEl.options[i].selected) result.push(selectEl.options[i].value);
@@ -93,7 +93,7 @@ export function certaintyBadgeClass(certainty: string) {
 // those two would force main.js and views.js to import from each other
 // in a circle. Putting it here, in a file neither of them needs to
 // import for this reason, avoids that entirely.
-	export function navigateTo(viewName: string) {
+export function navigateTo(viewName: string) {
   window.location.hash = viewName;
   // handleHashChange() in main.js picks this up via the hashchange listener
 }

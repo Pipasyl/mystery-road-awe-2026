@@ -11,7 +11,8 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"*.{js,css,html}\""
+    "format": "prettier --write \"*.{js,ts,css,html}\"",
+    "format:check": "prettier --check \"*.{js,ts,css,html}\""
   },
   "repository": {
     "type": "git",

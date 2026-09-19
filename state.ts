@@ -40,21 +40,21 @@ export const STORAGE_KEY_HYPOTHESIS = "remotion_hypothesis";
 export function getAllEvidence() {
   return allEvidence;
 }
-   export function setAllEvidence(data: Evidence[]) {
+export function setAllEvidence(data: Evidence[]) {
   allEvidence = data;
 }
 
 export function getFilteredEvidenceList() {
   return filteredEvidenceList;
 }
-   export function setFilteredEvidenceList(data: Evidence[]) {
+export function setFilteredEvidenceList(data: Evidence[]) {
   filteredEvidenceList = data;
 }
 
 export function getSelectedEvidence() {
   return selectedEvidence;
 }
-   export function setSelectedEvidence(ev: Evidence | null) {
+export function setSelectedEvidence(ev: Evidence | null) {
   selectedEvidence = ev;
 }
 
@@ -78,28 +78,28 @@ export function setCurrentPage(page: string) {
 export function getAllPeople() {
   return allPeople;
 }
-   export function setAllPeople(data: Person[]) {
+export function setAllPeople(data: Person[]) {
   allPeople = data;
 }
 
 export function getAllLocations() {
   return allLocations;
 }
-   export function setAllLocations(data: CaseLocation[]) {
+export function setAllLocations(data: CaseLocation[]) {
   allLocations = data;
 }
 
 export function getAllTimeline() {
   return allTimeline;
 }
-   export function setAllTimeline(data: TimelineEvent[]) {
+export function setAllTimeline(data: TimelineEvent[]) {
   allTimeline = data;
 }
 
 export function getCaseData() {
   return caseData;
 }
-   export function setCaseData(data: CaseData) {
+export function setCaseData(data: CaseData) {
   caseData = data;
 }
 

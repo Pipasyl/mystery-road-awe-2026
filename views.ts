@@ -189,11 +189,7 @@ export function populateAllDropdowns() {
   populateHypothesisDropdowns();
 }
 
-function optionsHTML<T>(
-  items: T[],
-  getValue: (item: T) => string,
-  getLabel: (item: T) => string,
-) {
+function optionsHTML<T>(items: T[], getValue: (item: T) => string, getLabel: (item: T) => string) {
   let html = "";
   for (let i = 0; i < items.length; i++) {
     html += '<option value="' + getValue(items[i]) + '">' + getLabel(items[i]) + "</option>";
@@ -948,8 +944,7 @@ function renderNotesList() {
 
   const notesStore = getNotesStore();
   const evidence = getAllEvidence();
-  const noteEntries: Array<{ index: number; evidenceId: string; title: string; text: string }> =
-    [];
+  const noteEntries: Array<{ index: number; evidenceId: string; title: string; text: string }> = [];
   for (let i = 0; i < evidence.length; i++) {
     const note = notesStore[evidence[i].id];
     if (note) {
