@@ -193,7 +193,6 @@ function getFilteredEvidence() {
 }
 
 export function renderEvidenceList() {
-  console.log("render ran");
   const container = document.getElementById("evidenceList");
   if (!container) return;
 

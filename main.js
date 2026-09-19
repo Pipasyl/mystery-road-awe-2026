@@ -138,7 +138,6 @@ function setupEventListeners() {
 
   // NOTE: filterStatus is wired up TWICE — addEventListener AND an
   // inline onchange string. Already this way in the original code.
-  // Not fixing it here, flagged for the bug hunts.
   document.getElementById("filterStatus").addEventListener("change", renderEvidenceList);
 
   document.getElementById("filterRelevance").addEventListener("change", renderEvidenceList);

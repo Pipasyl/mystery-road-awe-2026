@@ -23,7 +23,6 @@ let filteredEvidenceList = [];
 let selectedEvidence = null;
 let bookmarks = [];
 let currentPage = "dashboard";
-
 let allPeople = [];
 let allLocations = [];
 let allTimeline = [];
