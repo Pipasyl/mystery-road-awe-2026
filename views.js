@@ -9,24 +9,36 @@
 
 import {
   getAllEvidence,
-  getFilteredEvidenceList, setFilteredEvidenceList,
+  getFilteredEvidenceList,
+  setFilteredEvidenceList,
   setSelectedEvidence,
-  getBookmarks, setBookmarks,
+  getBookmarks,
+  setBookmarks,
   getCurrentPage,
-  getAllPeople, getAllLocations, getAllTimeline, getCaseData,
+  getAllPeople,
+  getAllLocations,
+  getAllTimeline,
+  getCaseData,
   setCurrentPeopleTab,
   getEvidenceViewLoading,
   getViewRendered,
   getNotesStore,
-  getModalCloseListenerCount, incrementModalCloseListenerCount,
-  STORAGE_KEY_HYPOTHESIS
+  getModalCloseListenerCount,
+  incrementModalCloseListenerCount,
+  STORAGE_KEY_HYPOTHESIS,
 } from "./state.js";
 
 import {
-  findEvidenceById, findPersonById, findLocationById,
-  evidenceMentionsPerson, formatDate,
-  getStatusBadgeClass, getRelevanceBadgeClass, certaintyBadgeClass,
-  getSelectedOptions, navigateTo
+  findEvidenceById,
+  findPersonById,
+  findLocationById,
+  evidenceMentionsPerson,
+  formatDate,
+  getStatusBadgeClass,
+  getRelevanceBadgeClass,
+  certaintyBadgeClass,
+  getSelectedOptions,
+  navigateTo,
 } from "./utils.js";
 
 import { saveBookmarksToStorage, loadNoteForEvidence, saveNoteForEvidence } from "./api.js";
@@ -47,12 +59,16 @@ export function renderDashboard() {
     if ((allEvidence[i].status || "").toLowerCase() === "reviewed") reviewedCount++;
   }
 
-  const progressPct = allEvidence.length === 0 ? 0 : Math.round((reviewedCount / allEvidence.length) * 100);
+  const progressPct =
+    allEvidence.length === 0 ? 0 : Math.round((reviewedCount / allEvidence.length) * 100);
 
   let html = "";
   html += '<div class="case-summary-card">';
   html += "<h3>" + (caseData.title || "Case") + "</h3>";
-  html += '<p><span class="badge badge-flagged">' + (caseData.status || "unknown").toUpperCase() + "</span></p>";
+  html +=
+    '<p><span class="badge badge-flagged">' +
+    (caseData.status || "unknown").toUpperCase() +
+    "</span></p>";
   html += "<p>" + (caseData.summary || "") + "</p>";
   html += "</div>";
 
@@ -66,7 +82,10 @@ export function renderDashboard() {
 
   html += '<div class="dashboard-panel">';
   html += "<h3>Review progress</h3>";
-  html += '<div class="progress-bar-outer"><div class="progress-bar-inner" style="width:' + progressPct + '%;"></div></div>';
+  html +=
+    '<div class="progress-bar-outer"><div class="progress-bar-inner" style="width:' +
+    progressPct +
+    '%;"></div></div>';
   html += "<p>" + progressPct + "% of evidence reviewed</p>";
   html += "</div>";
 
@@ -79,8 +98,16 @@ export function renderDashboard() {
   }
   for (let e = 0; e < recentEvidence.length; e++) {
     const ev = recentEvidence[e];
-    html += '<div class="mini-list-item"><strong>' + ev.id + "</strong> &mdash; " + ev.title +
-      ' <span class="badge ' + getStatusBadgeClass(ev.status) + '">' + ev.status + "</span></div>";
+    html +=
+      '<div class="mini-list-item"><strong>' +
+      ev.id +
+      "</strong> &mdash; " +
+      ev.title +
+      ' <span class="badge ' +
+      getStatusBadgeClass(ev.status) +
+      '">' +
+      ev.status +
+      "</span></div>";
   }
   html += "</div>";
 
@@ -91,7 +118,12 @@ export function renderDashboard() {
   }
   for (let t = 0; t < recentTimeline.length; t++) {
     const evt = recentTimeline[t];
-    html += '<div class="mini-list-item"><strong>' + formatDate(evt.time) + "</strong><br>" + evt.title + "</div>";
+    html +=
+      '<div class="mini-list-item"><strong>' +
+      formatDate(evt.time) +
+      "</strong><br>" +
+      evt.title +
+      "</div>";
   }
   html += "</div>";
 
@@ -101,7 +133,13 @@ export function renderDashboard() {
 }
 
 const statCardHTML = (value, label) => {
-  return '<div class="stat-card"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + "</div></div>";
+  return (
+    '<div class="stat-card"><div class="stat-value">' +
+    value +
+    '</div><div class="stat-label">' +
+    label +
+    "</div></div>"
+  );
 };
 
 // ---------------------------------------------------------------------
@@ -134,16 +172,43 @@ function populateEvidenceDropdowns() {
     const t = evidence[i].type.toLowerCase();
     if (types.indexOf(t) === -1) types.push(t);
   }
-  typeSelect.innerHTML = '<option value="">All types</option>' +
-    optionsHTML(types, function (t) { return t; }, function (t) { return t; });
+  typeSelect.innerHTML =
+    '<option value="">All types</option>' +
+    optionsHTML(
+      types,
+      function (t) {
+        return t;
+      },
+      function (t) {
+        return t;
+      },
+    );
 
   const people = getAllPeople();
-  personSelect.innerHTML = '<option value="">All people</option>' +
-    optionsHTML(people, function (p) { return p.id; }, function (p) { return p.name; });
+  personSelect.innerHTML =
+    '<option value="">All people</option>' +
+    optionsHTML(
+      people,
+      function (p) {
+        return p.id;
+      },
+      function (p) {
+        return p.name;
+      },
+    );
 
   const locations = getAllLocations();
-  locationSelect.innerHTML = '<option value="">All locations</option>' +
-    optionsHTML(locations, function (l) { return l.id; }, function (l) { return l.id + " - " + l.name; });
+  locationSelect.innerHTML =
+    '<option value="">All locations</option>' +
+    optionsHTML(
+      locations,
+      function (l) {
+        return l.id;
+      },
+      function (l) {
+        return l.id + " - " + l.name;
+      },
+    );
 }
 
 function getFilteredEvidence() {
@@ -172,7 +237,8 @@ function getFilteredEvidence() {
     }
     if (matches && locationVal && item.locationIds.indexOf(locationVal) === -1) matches = false;
     if (matches && statusVal && (item.status || "").toLowerCase() !== statusVal) matches = false;
-    if (matches && relevanceVal && (item.relevance || "").toLowerCase() !== relevanceVal) matches = false;
+    if (matches && relevanceVal && (item.relevance || "").toLowerCase() !== relevanceVal)
+      matches = false;
 
     if (matches) results.push(item);
   }
@@ -180,13 +246,21 @@ function getFilteredEvidence() {
   const sortSelect = document.getElementById("sortEvidence");
   const sortValue = sortSelect ? sortSelect.value : "date-desc";
   if (sortValue === "title-asc") {
-    results.sort(function (a, b) { return a.title.localeCompare(b.title); });
+    results.sort(function (a, b) {
+      return a.title.localeCompare(b.title);
+    });
   } else if (sortValue === "title-desc") {
-    results.sort(function (a, b) { return b.title.localeCompare(a.title); });
+    results.sort(function (a, b) {
+      return b.title.localeCompare(a.title);
+    });
   } else if (sortValue === "date-asc") {
-    results.sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+    results.sort(function (a, b) {
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
   } else {
-    results.sort(function (a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+    results.sort(function (a, b) {
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
   }
   setFilteredEvidenceList(results);
   return results;
@@ -221,16 +295,33 @@ export function renderEvidenceList() {
 function renderEvidenceCardHTML(ev) {
   const isBookmarked = getBookmarks().indexOf(ev.id) !== -1;
   let html = '<div class="evidence-card" data-id="' + ev.id + '">';
-  html += '<button class="bookmark-btn ' + (isBookmarked ? "active" : "") + '" data-action="bookmark" data-id="' + ev.id + '" aria-label="Toggle bookmark for ' + ev.title + '"><span class="bookmark-icon">' + (isBookmarked ? "★" : "☆") + "</span></button>";
+  html +=
+    '<button class="bookmark-btn ' +
+    (isBookmarked ? "active" : "") +
+    '" data-action="bookmark" data-id="' +
+    ev.id +
+    '" aria-label="Toggle bookmark for ' +
+    ev.title +
+    '"><span class="bookmark-icon">' +
+    (isBookmarked ? "★" : "☆") +
+    "</span></button>";
   html += "<h3>" + ev.title + "</h3>";
-  html += '<div class="evidence-meta">' + ev.id + " &middot; " + ev.type + " &middot; " + formatDate(ev.timestamp) + "</div>";
+  html +=
+    '<div class="evidence-meta">' +
+    ev.id +
+    " &middot; " +
+    ev.type +
+    " &middot; " +
+    formatDate(ev.timestamp) +
+    "</div>";
   html += '<div class="evidence-summary">' + ev.summary + "</div>";
 
   if (ev.tags.indexOf("critical") !== -1) {
     html += '<span class="badge badge-critical">Critical</span>';
   }
   html += '<span class="badge ' + getStatusBadgeClass(ev.status) + '">' + ev.status + "</span>";
-  html += '<span class="badge ' + getRelevanceBadgeClass(ev.relevance) + '">' + ev.relevance + "</span>";
+  html +=
+    '<span class="badge ' + getRelevanceBadgeClass(ev.relevance) + '">' + ev.relevance + "</span>";
   html += "<div>";
   for (let t = 0; t < ev.tags.length; t++) {
     html += '<span class="tag-chip">' + ev.tags[t] + "</span>";
@@ -264,9 +355,11 @@ function handleBookmarkClick(evidenceId) {
     bookmarks.push(evidenceId);
     ev.bookmarked = true;
   } else {
-    setBookmarks(bookmarks.filter(function (id) {
-      return id !== evidenceId;
-    }));
+    setBookmarks(
+      bookmarks.filter(function (id) {
+        return id !== evidenceId;
+      }),
+    );
     ev.bookmarked = false;
   }
   saveBookmarksToStorage();
@@ -322,7 +415,7 @@ export function handleSearchInput(event) {
   const term = event.target.value;
   const requestId = ++latestSearchRequestId;
 
-  simulateAsyncSearch(term).then(function (resolvedTerm) {
+  simulateAsyncSearch(term).then(function () {
     if (requestId !== latestSearchRequestId) return;
     renderEvidenceList();
   });
@@ -376,8 +469,16 @@ function renderEvidenceDetail(ev) {
   let html = "";
   html += '<div class="evidence-detail-header">';
   html += "<div><h2>" + ev.title + "</h2>";
-  html += '<div class="evidence-meta">' + ev.id + " &middot; " + ev.type + " &middot; " + formatDate(ev.timestamp) + "</div></div>";
-  html += '<button type="button" class="btn btn-secondary btn-small" onclick="closeEvidenceDetail()">Close</button>';
+  html +=
+    '<div class="evidence-meta">' +
+    ev.id +
+    " &middot; " +
+    ev.type +
+    " &middot; " +
+    formatDate(ev.timestamp) +
+    "</div></div>";
+  html +=
+    '<button type="button" class="btn btn-secondary btn-small" onclick="closeEvidenceDetail()">Close</button>';
   html += "</div>";
 
   if (ev.tags.indexOf("critical") !== -1) {
@@ -386,8 +487,12 @@ function renderEvidenceDetail(ev) {
 
   html += '<div class="detail-field"><strong>Summary</strong>' + ev.summary + "</div>";
   html += '<div class="evidence-detail-content">' + ev.content + "</div>";
-  html += '<div class="detail-field"><strong>Related people</strong>' + personNames.join(", ") + "</div>";
-  html += '<div class="detail-field"><strong>Related locations</strong>' + locationNames.join(", ") + "</div>";
+  html +=
+    '<div class="detail-field"><strong>Related people</strong>' + personNames.join(", ") + "</div>";
+  html +=
+    '<div class="detail-field"><strong>Related locations</strong>' +
+    locationNames.join(", ") +
+    "</div>";
   html += '<div class="detail-field"><strong>Tags</strong>' + tagsHtml + "</div>";
 
   html += '<div class="detail-field"><strong>Review status</strong>';
@@ -405,11 +510,20 @@ function renderEvidenceDetail(ev) {
   html += "</select></div>";
 
   html += '<div class="detail-field"><strong>Investigator note</strong>';
-  html += '<textarea id="evidenceNoteInput" class="note-textarea" rows="3" data-evidence-id="' + ev.id + '" placeholder="Add a private note about this evidence...">' + storedNote + "</textarea>";
-  html += '<button type="button" class="btn btn-primary btn-small" style="margin-top:6px;" onclick="saveCurrentNote()">Save note</button>';
+  html +=
+    '<textarea id="evidenceNoteInput" class="note-textarea" rows="3" data-evidence-id="' +
+    ev.id +
+    '" placeholder="Add a private note about this evidence...">' +
+    storedNote +
+    "</textarea>";
+  html +=
+    '<button type="button" class="btn btn-primary btn-small" style="margin-top:6px;" onclick="saveCurrentNote()">Save note</button>';
   html += "</div>";
 
-  html += '<div class="detail-field"><strong>Note preview</strong><div id="notePreview">' + storedNote + "</div></div>";
+  html +=
+    '<div class="detail-field"><strong>Note preview</strong><div id="notePreview">' +
+    storedNote +
+    "</div></div>";
 
   section.innerHTML = html;
 
@@ -484,8 +598,14 @@ export function renderPeople() {
 
     html += '<div class="person-card">';
     html += '<div class="person-card-header">';
-    html += '<img class="person-avatar" src="' + person.avatar + '" alt="Portrait of ' + person.name + '">';
-    html += "<div><h3>" + person.name + "</h3><div class=\"person-role\">" + person.role + "</div></div>";
+    html +=
+      '<img class="person-avatar" src="' +
+      person.avatar +
+      '" alt="Portrait of ' +
+      person.name +
+      '">';
+    html +=
+      "<div><h3>" + person.name + '</h3><div class="person-role">' + person.role + "</div></div>";
     html += "</div>";
     html += "<p><strong>Speciality:</strong> " + person.speciality + "</p>";
     html += "<ul>";
@@ -493,9 +613,12 @@ export function renderPeople() {
       html += "<li>" + person.responsibilities[r] + "</li>";
     }
     html += "</ul>";
-    html += '<div class="person-statement">&ldquo;' + person.statement + '&rdquo;</div>';
+    html += '<div class="person-statement">&ldquo;' + person.statement + "&rdquo;</div>";
     html += "<p>" + count + " related evidence item" + (count === 1 ? "" : "s") + " &mdash; ";
-    html += '<button type="button" class="evidence-count-link" data-person-id="' + person.id + '">view</button></p>';
+    html +=
+      '<button type="button" class="evidence-count-link" data-person-id="' +
+      person.id +
+      '">view</button></p>';
     html += "</div>";
   }
   container.innerHTML = html;
@@ -542,20 +665,47 @@ function populateTimelineDropdowns() {
   if (!personSelect || !locationSelect || !typeSelect) return;
 
   const people = getAllPeople();
-  personSelect.innerHTML = '<option value="">All people</option>' +
-    optionsHTML(people, function (p) { return p.id; }, function (p) { return p.name; });
+  personSelect.innerHTML =
+    '<option value="">All people</option>' +
+    optionsHTML(
+      people,
+      function (p) {
+        return p.id;
+      },
+      function (p) {
+        return p.name;
+      },
+    );
 
   const locations = getAllLocations();
-  locationSelect.innerHTML = '<option value="">All locations</option>' +
-    optionsHTML(locations, function (l) { return l.id; }, function (l) { return l.id; });
+  locationSelect.innerHTML =
+    '<option value="">All locations</option>' +
+    optionsHTML(
+      locations,
+      function (l) {
+        return l.id;
+      },
+      function (l) {
+        return l.id;
+      },
+    );
 
   const timeline = getAllTimeline();
   const types = [];
   for (let i = 0; i < timeline.length; i++) {
     if (types.indexOf(timeline[i].type) === -1) types.push(timeline[i].type);
   }
-  typeSelect.innerHTML = '<option value="">All event types</option>' +
-    optionsHTML(types, function (t) { return t; }, function (t) { return t; });
+  typeSelect.innerHTML =
+    '<option value="">All event types</option>' +
+    optionsHTML(
+      types,
+      function (t) {
+        return t;
+      },
+      function (t) {
+        return t;
+      },
+    );
 }
 
 export function renderTimeline() {
@@ -578,7 +728,7 @@ export function renderTimeline() {
   }
 
   // events is reassigned by .sort() chaining below -> let
-  let events = collected.slice().sort(function (a, b) {
+  const events = collected.slice().sort(function (a, b) {
     const diff = new Date(a.time) - new Date(b.time);
     return order === "desc" ? -diff : diff;
   });
@@ -587,7 +737,14 @@ export function renderTimeline() {
   for (let e = 0; e < events.length; e++) {
     const item = events[e];
     html += '<div class="timeline-event certainty-' + item.certainty + '">';
-    html += '<div class="timeline-time">' + formatDate(item.time) + '&nbsp;&middot;&nbsp;<span class="badge badge-' + certaintyBadgeClass(item.certainty) + '">' + item.certainty + "</span></div>";
+    html +=
+      '<div class="timeline-time">' +
+      formatDate(item.time) +
+      '&nbsp;&middot;&nbsp;<span class="badge badge-' +
+      certaintyBadgeClass(item.certainty) +
+      '">' +
+      item.certainty +
+      "</span></div>";
     html += "<h3>" + item.title + "</h3>";
     html += "<p>" + item.description + "</p>";
 
@@ -601,7 +758,12 @@ export function renderTimeline() {
     }
 
     for (let ev2 = 0; ev2 < item.evidenceIds.length; ev2++) {
-      html += '<button type="button" class="evidence-link-btn" data-evidence-id="' + item.evidenceIds[ev2] + '">View ' + item.evidenceIds[ev2] + "</button>";
+      html +=
+        '<button type="button" class="evidence-link-btn" data-evidence-id="' +
+        item.evidenceIds[ev2] +
+        '">View ' +
+        item.evidenceIds[ev2] +
+        "</button>";
     }
     html += "</div>";
   }
@@ -634,17 +796,32 @@ function openEvidenceModal(evidenceId) {
   modal.innerHTML =
     '<div class="modal-backdrop"><div class="modal-box">' +
     '<button type="button" class="modal-close-btn" aria-label="Close">&times;</button>' +
-    "<h3>" + ev.title + "</h3>" +
-    '<p class="evidence-meta">' + ev.id + " &middot; " + ev.type + " &middot; " + formatDate(ev.timestamp) + "</p>" +
-    "<p>" + ev.summary + "</p>" +
-    '<button type="button" class="btn btn-primary btn-small" data-open-full="' + ev.id + '">Open full evidence</button>' +
+    "<h3>" +
+    ev.title +
+    "</h3>" +
+    '<p class="evidence-meta">' +
+    ev.id +
+    " &middot; " +
+    ev.type +
+    " &middot; " +
+    formatDate(ev.timestamp) +
+    "</p>" +
+    "<p>" +
+    ev.summary +
+    "</p>" +
+    '<button type="button" class="btn btn-primary btn-small" data-open-full="' +
+    ev.id +
+    '">Open full evidence</button>' +
     "</div></div>";
 
   incrementModalCloseListenerCount();
   console.log("modal opened, active close listeners:", getModalCloseListenerCount());
 
   modal.addEventListener("click", function (e) {
-    if (e.target.classList.contains("modal-close-btn") || e.target.classList.contains("modal-backdrop")) {
+    if (
+      e.target.classList.contains("modal-close-btn") ||
+      e.target.classList.contains("modal-backdrop")
+    ) {
       modal.innerHTML = "";
     }
     if (e.target.getAttribute && e.target.getAttribute("data-open-full")) {
@@ -677,15 +854,22 @@ function renderBookmarksList() {
   });
 
   if (bookmarkedItems.length === 0) {
-    container.innerHTML = "<p>No bookmarked evidence yet. Bookmark items from the Evidence view.</p>";
+    container.innerHTML =
+      "<p>No bookmarked evidence yet. Bookmark items from the Evidence view.</p>";
     return;
   }
 
   let html = "";
   for (let i = 0; i < bookmarkedItems.length; i++) {
     const ev = bookmarkedItems[i];
-    html += '<div class="mini-list-item"><strong>' + ev.id + "</strong> &mdash; " + ev.title +
-      ' <button type="button" class="btn btn-small btn-secondary" data-open-evidence="' + ev.id + '">Open</button></div>';
+    html +=
+      '<div class="mini-list-item"><strong>' +
+      ev.id +
+      "</strong> &mdash; " +
+      ev.title +
+      ' <button type="button" class="btn btn-small btn-secondary" data-open-evidence="' +
+      ev.id +
+      '">Open</button></div>';
   }
   container.innerHTML = html;
 
@@ -711,7 +895,12 @@ function renderNotesList() {
   for (let i = 0; i < evidence.length; i++) {
     const note = notesStore[evidence[i].id];
     if (note) {
-      noteEntries.push({ index: i, evidenceId: evidence[i].id, title: evidence[i].title, text: note });
+      noteEntries.push({
+        index: i,
+        evidenceId: evidence[i].id,
+        title: evidence[i].title,
+        text: note,
+      });
     }
   }
 
@@ -723,7 +912,11 @@ function renderNotesList() {
   let html = "";
   for (let n = 0; n < noteEntries.length; n++) {
     const entry = noteEntries[n];
-    html += '<div class="mini-list-item"><strong>' + entry.evidenceId + "</strong> &mdash; " + entry.title;
+    html +=
+      '<div class="mini-list-item"><strong>' +
+      entry.evidenceId +
+      "</strong> &mdash; " +
+      entry.title;
     html += '<div id="noteText-' + entry.index + '">' + entry.text + "</div></div>";
   }
   container.innerHTML = html;
@@ -736,12 +929,29 @@ function populateHypothesisDropdowns() {
 
   const people = getAllPeople();
   const currentSuspect = suspectSelect.value;
-  suspectSelect.innerHTML = '<option value="">Select a person…</option>' +
-    optionsHTML(people, function (p) { return p.id; }, function (p) { return p.name; });
+  suspectSelect.innerHTML =
+    '<option value="">Select a person…</option>' +
+    optionsHTML(
+      people,
+      function (p) {
+        return p.id;
+      },
+      function (p) {
+        return p.name;
+      },
+    );
   suspectSelect.value = currentSuspect;
 
   const evidence = getAllEvidence();
-  evidenceSelect.innerHTML = optionsHTML(evidence, function (ev) { return ev.id; }, function (ev) { return ev.id + " - " + ev.title; });
+  evidenceSelect.innerHTML = optionsHTML(
+    evidence,
+    function (ev) {
+      return ev.id;
+    },
+    function (ev) {
+      return ev.id + " - " + ev.title;
+    },
+  );
 }
 
 export function saveHypothesis() {
@@ -752,7 +962,7 @@ export function saveHypothesis() {
     confidence: document.getElementById("hypConfidence").value,
     explanation: document.getElementById("hypExplanation").value,
     alternative: document.getElementById("hypAlternative").value,
-    savedAt: new Date().toISOString()
+    savedAt: new Date().toISOString(),
   };
 
   try {

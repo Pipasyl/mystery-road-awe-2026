@@ -24,7 +24,7 @@ import {
   setNotesStore,
   decrementLoadingSteps,
   STORAGE_KEY_BOOKMARKS,
-  STORAGE_KEY_NOTES
+  STORAGE_KEY_NOTES,
 } from "./state.js";
 
 // --- loading overlay --------------------------------------------------------
@@ -112,7 +112,8 @@ export async function loadTimelineData(onComplete) {
 export function applyStoredBookmarkFlags() {
   const evidence = getAllEvidence(); // never reassigned -> const
   const bookmarkedIds = getBookmarks();
-  for (let i = 0; i < evidence.length; i++) { // loop counter -> let
+  for (let i = 0; i < evidence.length; i++) {
+    // loop counter -> let
     evidence[i].bookmarked = bookmarkedIds.indexOf(evidence[i].id) !== -1;
   }
 }

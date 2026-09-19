@@ -40,7 +40,7 @@ const viewRendered = {
   evidence: false,
   people: false,
   timeline: false,
-  workspace: false
+  workspace: false,
 };
 
 let notesStore = {};
@@ -55,42 +55,86 @@ export const STORAGE_KEY_NOTES = "remotion_notes";
 export const STORAGE_KEY_HYPOTHESIS = "remotion_hypothesis";
 
 // --- evidence ---------------------------------------------------------
-export function getAllEvidence() { return allEvidence; }
-export function setAllEvidence(data) { allEvidence = data; }
+export function getAllEvidence() {
+  return allEvidence;
+}
+export function setAllEvidence(data) {
+  allEvidence = data;
+}
 
-export function getFilteredEvidenceList() { return filteredEvidenceList; }
-export function setFilteredEvidenceList(data) { filteredEvidenceList = data; }
+export function getFilteredEvidenceList() {
+  return filteredEvidenceList;
+}
+export function setFilteredEvidenceList(data) {
+  filteredEvidenceList = data;
+}
 
-export function getSelectedEvidence() { return selectedEvidence; }
-export function setSelectedEvidence(ev) { selectedEvidence = ev; }
+export function getSelectedEvidence() {
+  return selectedEvidence;
+}
+export function setSelectedEvidence(ev) {
+  selectedEvidence = ev;
+}
 
 // --- bookmarks ----------------------------------------------------------
-export function getBookmarks() { return bookmarks; }
-export function setBookmarks(list) { bookmarks = list; }
+export function getBookmarks() {
+  return bookmarks;
+}
+export function setBookmarks(list) {
+  bookmarks = list;
+}
 
 // --- navigation state -----------------------------------------------------
-export function getCurrentPage() { return currentPage; }
-export function setCurrentPage(page) { currentPage = page; }
+export function getCurrentPage() {
+  return currentPage;
+}
+export function setCurrentPage(page) {
+  currentPage = page;
+}
 
 // --- people / locations / timeline / case ---------------------------------
-export function getAllPeople() { return allPeople; }
-export function setAllPeople(data) { allPeople = data; }
+export function getAllPeople() {
+  return allPeople;
+}
+export function setAllPeople(data) {
+  allPeople = data;
+}
 
-export function getAllLocations() { return allLocations; }
-export function setAllLocations(data) { allLocations = data; }
+export function getAllLocations() {
+  return allLocations;
+}
+export function setAllLocations(data) {
+  allLocations = data;
+}
 
-export function getAllTimeline() { return allTimeline; }
-export function setAllTimeline(data) { allTimeline = data; }
+export function getAllTimeline() {
+  return allTimeline;
+}
+export function setAllTimeline(data) {
+  allTimeline = data;
+}
 
-export function getCaseData() { return caseData; }
-export function setCaseData(data) { caseData = data; }
+export function getCaseData() {
+  return caseData;
+}
+export function setCaseData(data) {
+  caseData = data;
+}
 
-export function getCurrentPeopleTab() { return currentPeopleTab; }
-export function setCurrentPeopleTab(tab) { currentPeopleTab = tab; }
+export function getCurrentPeopleTab() {
+  return currentPeopleTab;
+}
+export function setCurrentPeopleTab(tab) {
+  currentPeopleTab = tab;
+}
 
 // --- loading lifecycle ------------------------------------------------------
-export function getLoadingStepsRemaining() { return loadingStepsRemaining; }
-export function setLoadingStepsRemaining(n) { loadingStepsRemaining = n; }
+export function getLoadingStepsRemaining() {
+  return loadingStepsRemaining;
+}
+export function setLoadingStepsRemaining(n) {
+  loadingStepsRemaining = n;
+}
 
 // Decrements AND hands back the new value in one call, since every
 // caller of the old hideLoadingStep() needed the result immediately
@@ -100,18 +144,32 @@ export function decrementLoadingSteps() {
   return loadingStepsRemaining;
 }
 
-export function getEvidenceViewLoading() { return evidenceViewLoading; }
-export function setEvidenceViewLoading(val) { evidenceViewLoading = val; }
+export function getEvidenceViewLoading() {
+  return evidenceViewLoading;
+}
+export function setEvidenceViewLoading(val) {
+  evidenceViewLoading = val;
+}
 
-export function getViewRendered() { return viewRendered; }
-export function markViewRendered(viewName) { viewRendered[viewName] = true; }
+export function getViewRendered() {
+  return viewRendered;
+}
+export function markViewRendered(viewName) {
+  viewRendered[viewName] = true;
+}
 
 // --- notes ------------------------------------------------------------------
-export function getNotesStore() { return notesStore; }
-export function setNotesStore(store) { notesStore = store; }
+export function getNotesStore() {
+  return notesStore;
+}
+export function setNotesStore(store) {
+  notesStore = store;
+}
 
 // --- modal debug counter --------------------------------------------------
-export function getModalCloseListenerCount() { return modalCloseListenerCount; }
+export function getModalCloseListenerCount() {
+  return modalCloseListenerCount;
+}
 export function incrementModalCloseListenerCount() {
   modalCloseListenerCount++;
   return modalCloseListenerCount;

@@ -10,7 +10,8 @@ import { getAllEvidence, getAllPeople, getAllLocations } from "./state.js";
 
 export function findEvidenceById(id) {
   const list = getAllEvidence(); // never reassigned -> const
-  for (let i = 0; i < list.length; i++) { // loop counter, reassigned every pass -> let
+  for (let i = 0; i < list.length; i++) {
+    // loop counter, reassigned every pass -> let
     if (list[i].id === id) return list[i];
   }
   return null;
@@ -41,8 +42,11 @@ export const formatDate = (ts) => {
   if (!ts) return "Unknown date";
   const d = new Date(ts);
   if (isNaN(d.getTime())) return ts;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
-    " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return (
+    d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
+    " " +
+    d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+  );
 };
 
 export function getStatusBadgeClass(status) {

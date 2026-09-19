@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "Investigate the failure of an AI-assisted rehabilitation robot.",
   "main": "main.js",
-        "scripts": {
+     "scripts": {
      "dev": "vite",
      "build": "vite build",
-     "preview": "vite preview"
+     "preview": "vite preview",
+     "lint": "eslint .",
+     "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"*.{js,css,html}\""
    },
   "repository": {
     "type": "git",
@@ -21,6 +24,10 @@
   },
   "homepage": "https://github.com/Pipasyl/mystery-road-awe-2026#readme",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.8",
     "vite": "^8.3.0"
   }
 }

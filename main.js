@@ -10,7 +10,7 @@ import {
   loadTimelineData,
   loadBookmarksFromStorage,
   loadNotesFromStorage,
-  loadNoteAsync
+  loadNoteAsync,
 } from "./api.js";
 
 import {
@@ -18,7 +18,7 @@ import {
   setCurrentPage,
   getViewRendered,
   markViewRendered,
-  setLoadingStepsRemaining
+  setLoadingStepsRemaining,
 } from "./state.js";
 
 import { navigateTo } from "./utils.js";
@@ -37,7 +37,7 @@ import {
   handleSortChange,
   saveHypothesis,
   closeEvidenceDetail,
-  saveCurrentNote
+  saveCurrentNote,
 } from "./views.js";
 
 // Bridge for inline onclick="..." attributes in index.html and in HTML
@@ -82,7 +82,8 @@ function handleHashChange() {
   setCurrentPage(hash);
 
   const sections = document.querySelectorAll(".view");
-  for (let i = 0; i < sections.length; i++) { // loop counter -> let
+  for (let i = 0; i < sections.length; i++) {
+    // loop counter -> let
     sections[i].classList.remove("active");
   }
   document.getElementById("view-" + hash).classList.add("active");
@@ -148,10 +149,10 @@ function setupEventListeners() {
   document.getElementById("timelinePersonFilter").addEventListener("change", renderTimeline);
   document.getElementById("timelineLocationFilter").addEventListener("change", renderTimeline);
   document.getElementById("timelineTypeFilter").addEventListener("change", renderTimeline);
-//task 10
+  //task 10
   document.getElementById("hypConfidence").addEventListener("input", (e) => {
-  document.getElementById("hypConfidenceValue").textContent = e.target.value;
-});
+    document.getElementById("hypConfidenceValue").textContent = e.target.value;
+  });
 }
 
 // Demo 3 fix: was a plain function using loadNoteAsync("E01") without
