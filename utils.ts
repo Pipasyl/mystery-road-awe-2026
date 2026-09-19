@@ -97,3 +97,5 @@ export function navigateTo(viewName: string) {
   window.location.hash = viewName;
   // handleHashChange() in main.js picks this up via the hashchange listener
 }
+
+export const   demoBroken  =   1;
