@@ -41,7 +41,7 @@ import {
   navigateTo,
 } from "./utils";
 
-import { saveBookmarksToStorage, loadNoteForEvidence, saveNoteForEvidence } from "./api.js";
+import { saveBookmarksToStorage, loadNoteForEvidence, saveNoteForEvidence } from "./api";
 
 // ---------------------------------------------------------------------
 // DASHBOARD

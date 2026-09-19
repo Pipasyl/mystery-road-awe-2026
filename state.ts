@@ -1,19 +1,14 @@
-interface DataRecord {
-  [key: string]: unknown;
-}
-interface IdRecord extends DataRecord {
-  id: string;
-}
+import type { CaseData, CaseLocation, Evidence, Person, TimelineEvent } from "./types";
 
-let allEvidence: IdRecord[] = [];
-let filteredEvidenceList: IdRecord[] = [];
-let selectedEvidence: IdRecord | null = null;
+let allEvidence: Evidence[] = [];
+let filteredEvidenceList: Evidence[] = [];
+let selectedEvidence: Evidence | null = null;
 let bookmarks: string[] = [];
 let currentPage = "dashboard";
-let allPeople: IdRecord[] = [];
-let allLocations: IdRecord[] = [];
-let allTimeline: DataRecord[] = [];
-let caseData: DataRecord = {};
+let allPeople: Person[] = [];
+let allLocations: CaseLocation[] = [];
+let allTimeline: TimelineEvent[] = [];
+let caseData: Partial<CaseData> = {};
 
 let currentPeopleTab = "people";
 let loadingStepsRemaining = 2;
@@ -45,21 +40,21 @@ export const STORAGE_KEY_HYPOTHESIS = "remotion_hypothesis";
 export function getAllEvidence() {
   return allEvidence;
 }
-export function setAllEvidence(data: IdRecord[]) {
+   export function setAllEvidence(data: Evidence[]) {
   allEvidence = data;
 }
 
 export function getFilteredEvidenceList() {
   return filteredEvidenceList;
 }
-export function setFilteredEvidenceList(data: IdRecord[]) {
+   export function setFilteredEvidenceList(data: Evidence[]) {
   filteredEvidenceList = data;
 }
 
 export function getSelectedEvidence() {
   return selectedEvidence;
 }
-export function setSelectedEvidence(ev: IdRecord | null) {
+   export function setSelectedEvidence(ev: Evidence | null) {
   selectedEvidence = ev;
 }
 
@@ -83,28 +78,28 @@ export function setCurrentPage(page: string) {
 export function getAllPeople() {
   return allPeople;
 }
-export function setAllPeople(data: IdRecord[]) {
+   export function setAllPeople(data: Person[]) {
   allPeople = data;
 }
 
 export function getAllLocations() {
   return allLocations;
 }
-export function setAllLocations(data: IdRecord[]) {
+   export function setAllLocations(data: CaseLocation[]) {
   allLocations = data;
 }
 
 export function getAllTimeline() {
   return allTimeline;
 }
-export function setAllTimeline(data: DataRecord[]) {
+   export function setAllTimeline(data: TimelineEvent[]) {
   allTimeline = data;
 }
 
 export function getCaseData() {
   return caseData;
 }
-export function setCaseData(data: DataRecord) {
+   export function setCaseData(data: CaseData) {
   caseData = data;
 }
 

@@ -11,7 +11,7 @@ import {
   loadBookmarksFromStorage,
   loadNotesFromStorage,
   loadNoteAsync,
-} from "./api.js";
+} from "./api";
 
 import {
   getCurrentPage,

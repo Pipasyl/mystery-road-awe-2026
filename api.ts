@@ -26,10 +26,11 @@ import {
   STORAGE_KEY_BOOKMARKS,
   STORAGE_KEY_NOTES,
 } from "./state";
+import type { CaseData, CaseLocation, Evidence, Person, TimelineEvent } from "./types";
 
 // --- loading overlay --------------------------------------------------------
 
-export function showLoadingOverlay(msg) {
+export function showLoadingOverlay(msg: string) {
   const overlay = document.getElementById("loadingOverlay"); // never reassigned -> const
   const text = document.getElementById("loadingText");
   if (text) text.textContent = msg;
@@ -55,27 +56,27 @@ export function hideLoadingStep() {
 // each waiting for the previous to finish). Converted to async/await —
 // exact same sequential behavior (still one request after another, not
 // parallel; that optimization is a later exercise), just linear to read.
-export async function loadCorePeopleAndLocations(onComplete) {
+export async function loadCorePeopleAndLocations(onComplete?: () => void) {
   const caseRes = await fetch("data/case.json");
-  const caseJson = await caseRes.json();
+  const caseJson = (await caseRes.json()) as CaseData;
   setCaseData(caseJson);
 
   const peopleRes = await fetch("data/people.json");
-  const peopleJson = await peopleRes.json();
+  const peopleJson = (await peopleRes.json()) as Person[];
   setAllPeople(peopleJson);
 
   const locationsRes = await fetch("data/locations.json");
-  const locationsJson = await locationsRes.json();
+  const locationsJson = (await locationsRes.json()) as CaseLocation[];
   setAllLocations(locationsJson);
 
   hideLoadingStep();
   if (onComplete) onComplete();
 }
 
-export function loadEvidenceData(onComplete) {
+export function loadEvidenceData(onComplete?: () => void) {
   fetch("data/evidence.json")
     .then(function (res) {
-      return res.json();
+      return res.json() as Promise<Evidence[]>;
     })
     .then(function (data) {
       setAllEvidence(data);
@@ -96,10 +97,10 @@ export function loadEvidenceData(onComplete) {
 
 // Demo 9: second conversion — .then()/.catch()/.finally() rewritten as
 // async/await with try/catch/finally, same error handling preserved.
-export async function loadTimelineData(onComplete) {
+export async function loadTimelineData(onComplete?: () => void) {
   try {
     const res = await fetch("data/timeline.json");
-    const data = await res.json();
+    const data = (await res.json()) as TimelineEvent[];
     setAllTimeline(data);
     if (onComplete) onComplete();
   } catch (err) {
@@ -127,21 +128,21 @@ export function saveBookmarksToStorage() {
 export function loadBookmarksFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_BOOKMARKS); // never reassigned -> const
-    const parsed = raw ? JSON.parse(raw) : [];
-    setBookmarks(Array.isArray(parsed) ? parsed : []);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    setBookmarks(Array.isArray(parsed) ? (parsed as string[]) : []);
   } catch (err) {
     console.warn("Could not read stored bookmarks, starting empty", err);
     setBookmarks([]);
   }
 }
 
-export function saveNoteForEvidence(evidenceId, text) {
+export function saveNoteForEvidence(evidenceId: string, text: string) {
   const notes = getNotesStore(); // the variable is never reassigned, only a property inside it is set -> const
   notes[evidenceId] = text;
   localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
 }
 
-export function loadNoteForEvidence(evidenceId) {
+export function loadNoteForEvidence(evidenceId: string) {
   return getNotesStore()[evidenceId] || "";
 }
 
@@ -151,11 +152,11 @@ export function loadNotesFromStorage() {
     setNotesStore({});
     return;
   }
-  setNotesStore(JSON.parse(raw));
+  setNotesStore(JSON.parse(raw) as Record<string, string>);
 }
 
-export function loadNoteAsync(evidenceId) {
-  return new Promise(function (resolve) {
+export function loadNoteAsync(evidenceId: string) {
+  return new Promise<string>(function (resolve) {
     resolve(getNotesStore()[evidenceId] || "");
   });
 }
