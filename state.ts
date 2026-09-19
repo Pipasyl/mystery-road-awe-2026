@@ -156,3 +156,4 @@ export function incrementModalCloseListenerCount() {
   modalCloseListenerCount++;
   return modalCloseListenerCount;
 }
+   const oops: number = "hello";
