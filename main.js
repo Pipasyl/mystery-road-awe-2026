@@ -19,9 +19,9 @@ import {
   getViewRendered,
   markViewRendered,
   setLoadingStepsRemaining,
-} from "./state.js";
+} from "./state";
 
-import { navigateTo } from "./utils.js";
+import { navigateTo } from "./utils";
 
 import {
   renderDashboard,

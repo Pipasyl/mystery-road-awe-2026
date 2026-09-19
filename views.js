@@ -26,7 +26,7 @@ import {
   getModalCloseListenerCount,
   incrementModalCloseListenerCount,
   STORAGE_KEY_HYPOTHESIS,
-} from "./state.js";
+} from "./state";
 
 import {
   findEvidenceById,
@@ -39,7 +39,7 @@ import {
   certaintyBadgeClass,
   getSelectedOptions,
   navigateTo,
-} from "./utils.js";
+} from "./utils";
 
 import { saveBookmarksToStorage, loadNoteForEvidence, saveNoteForEvidence } from "./api.js";
 

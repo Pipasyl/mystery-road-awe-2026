@@ -25,7 +25,7 @@ import {
   decrementLoadingSteps,
   STORAGE_KEY_BOOKMARKS,
   STORAGE_KEY_NOTES,
-} from "./state.js";
+} from "./state";
 
 // --- loading overlay --------------------------------------------------------
 

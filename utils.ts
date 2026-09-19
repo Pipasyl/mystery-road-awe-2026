@@ -8,7 +8,16 @@
 
 import { getAllEvidence, getAllPeople, getAllLocations } from "./state.js";
 
-export function findEvidenceById(id) {
+interface PersonLike {
+  id: string;
+  name: string;
+}
+
+interface EvidenceLike {
+  personIds?: string[];
+}
+
+export function findEvidenceById(id: string) {
   const list = getAllEvidence(); // never reassigned -> const
   for (let i = 0; i < list.length; i++) {
     // loop counter, reassigned every pass -> let
@@ -17,7 +26,7 @@ export function findEvidenceById(id) {
   return null;
 }
 
-export function findPersonById(id) {
+export function findPersonById(id: string) {
   const list = getAllPeople();
   for (let i = 0; i < list.length; i++) {
     if (list[i].id === id) return list[i];
@@ -25,7 +34,7 @@ export function findPersonById(id) {
   return null;
 }
 
-export function findLocationById(id) {
+export function findLocationById(id: string) {
   const list = getAllLocations();
   for (let i = 0; i < list.length; i++) {
     if (list[i].id === id) return list[i];
@@ -33,12 +42,12 @@ export function findLocationById(id) {
   return null;
 }
 
-export function evidenceMentionsPerson(ev, person) {
+export function evidenceMentionsPerson(ev: EvidenceLike, person: PersonLike) {
   if (!ev.personIds) return false;
   return ev.personIds.indexOf(person.id) !== -1 || ev.personIds.indexOf(person.name) !== -1;
 }
-//task10
-export const formatDate = (ts) => {
+
+export const formatDate = (ts?: string | null) => {
   if (!ts) return "Unknown date";
   const d = new Date(ts);
   if (isNaN(d.getTime())) return ts;
@@ -49,27 +58,27 @@ export const formatDate = (ts) => {
   );
 };
 
-export function getStatusBadgeClass(status) {
+  export function getStatusBadgeClass(status?: string | null) {
   const s = (status || "").toLowerCase(); // never reassigned -> const
   if (s === "reviewed") return "badge-reviewed";
   if (s === "flagged") return "badge-flagged";
   return "badge-unreviewed";
 }
 
-export function getRelevanceBadgeClass(relevance) {
+export function getRelevanceBadgeClass(relevance?: string | null) {
   const r = (relevance || "").toLowerCase();
   if (r === "relevant") return "badge-relevant";
   return "badge-unreviewed";
 }
 
-export function certaintyBadgeClass(certainty) {
+export function certaintyBadgeClass(certainty: string) {
   if (certainty === "confirmed") return "reviewed";
   if (certainty === "contradictory") return "critical";
   if (certainty === "reported") return "flagged";
   return "unreviewed";
 }
 
-export function getSelectedOptions(selectEl) {
+	export function getSelectedOptions(selectEl: HTMLSelectElement) {
   const result = []; // the array itself is never reassigned, only pushed into -> const
   for (let i = 0; i < selectEl.options.length; i++) {
     if (selectEl.options[i].selected) result.push(selectEl.options[i].value);
@@ -84,7 +93,7 @@ export function getSelectedOptions(selectEl) {
 // those two would force main.js and views.js to import from each other
 // in a circle. Putting it here, in a file neither of them needs to
 // import for this reason, avoids that entirely.
-export function navigateTo(viewName) {
+	export function navigateTo(viewName: string) {
   window.location.hash = viewName;
   // handleHashChange() in main.js picks this up via the hashchange listener
 }

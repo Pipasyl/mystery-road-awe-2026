@@ -1,32 +1,19 @@
-// ---------------------------------------------------------------------
-// state.js — the app's shared "memory"
-// ---------------------------------------------------------------------
-// Before the split, all of this lived as top-level `var` in one giant
-// app.js. Any function anywhere in that file could read AND overwrite
-// these variables directly. That's exactly how "two things that were
-// supposed to be independent turn out to be linked" bugs happen.
-//
-// ES modules change the rules: every file gets its own private scope.
-// A variable declared here is invisible to every other file unless we
-// hand it out on purpose. So this file is now the ONLY place allowed
-// to touch these variables directly. Every other module has to go
-// through a getter (to read) or a setter (to write).
-//
-// NOTE for Demo 8: these are still declared with `var`, on purpose.
-// Converting var -> let/const is a separate, later task. Don't touch
-// it here.
+interface DataRecord {
+  [key: string]: unknown;
+}
+interface IdRecord extends DataRecord {
+  id: string;
+}
 
-// let: every one of these gets reassigned later through its setter
-// function (e.g. setAllEvidence replaces the whole array with new data).
-let allEvidence = [];
-let filteredEvidenceList = [];
-let selectedEvidence = null;
-let bookmarks = [];
+let allEvidence: IdRecord[] = [];
+let filteredEvidenceList: IdRecord[] = [];
+let selectedEvidence: IdRecord | null = null;
+let bookmarks: string[] = [];
 let currentPage = "dashboard";
-let allPeople = [];
-let allLocations = [];
-let allTimeline = [];
-let caseData = {};
+let allPeople: IdRecord[] = [];
+let allLocations: IdRecord[] = [];
+let allTimeline: DataRecord[] = [];
+let caseData: DataRecord = {};
 
 let currentPeopleTab = "people";
 let loadingStepsRemaining = 2;
@@ -35,7 +22,7 @@ let evidenceViewLoading = true;
 // const: this object itself is never replaced with a new object — only
 // individual properties inside it change (see markViewRendered below),
 // so the variable binding itself never needs reassigning.
-const viewRendered = {
+const viewRendered: Record<string, boolean> = {
   dashboard: false,
   evidence: false,
   people: false,
@@ -43,7 +30,7 @@ const viewRendered = {
   workspace: false,
 };
 
-let notesStore = {};
+let notesStore: Record<string, string> = {};
 let modalCloseListenerCount = 0;
 
 // These three never change while the app runs, so exporting them
@@ -58,21 +45,21 @@ export const STORAGE_KEY_HYPOTHESIS = "remotion_hypothesis";
 export function getAllEvidence() {
   return allEvidence;
 }
-export function setAllEvidence(data) {
+export function setAllEvidence(data: IdRecord[]) {
   allEvidence = data;
 }
 
 export function getFilteredEvidenceList() {
   return filteredEvidenceList;
 }
-export function setFilteredEvidenceList(data) {
+export function setFilteredEvidenceList(data: IdRecord[]) {
   filteredEvidenceList = data;
 }
 
 export function getSelectedEvidence() {
   return selectedEvidence;
 }
-export function setSelectedEvidence(ev) {
+export function setSelectedEvidence(ev: IdRecord | null) {
   selectedEvidence = ev;
 }
 
@@ -80,7 +67,7 @@ export function setSelectedEvidence(ev) {
 export function getBookmarks() {
   return bookmarks;
 }
-export function setBookmarks(list) {
+export function setBookmarks(list: string[]) {
   bookmarks = list;
 }
 
@@ -88,7 +75,7 @@ export function setBookmarks(list) {
 export function getCurrentPage() {
   return currentPage;
 }
-export function setCurrentPage(page) {
+export function setCurrentPage(page: string) {
   currentPage = page;
 }
 
@@ -96,35 +83,35 @@ export function setCurrentPage(page) {
 export function getAllPeople() {
   return allPeople;
 }
-export function setAllPeople(data) {
+export function setAllPeople(data: IdRecord[]) {
   allPeople = data;
 }
 
 export function getAllLocations() {
   return allLocations;
 }
-export function setAllLocations(data) {
+export function setAllLocations(data: IdRecord[]) {
   allLocations = data;
 }
 
 export function getAllTimeline() {
   return allTimeline;
 }
-export function setAllTimeline(data) {
+export function setAllTimeline(data: DataRecord[]) {
   allTimeline = data;
 }
 
 export function getCaseData() {
   return caseData;
 }
-export function setCaseData(data) {
+export function setCaseData(data: DataRecord) {
   caseData = data;
 }
 
 export function getCurrentPeopleTab() {
   return currentPeopleTab;
 }
-export function setCurrentPeopleTab(tab) {
+export function setCurrentPeopleTab(tab: string) {
   currentPeopleTab = tab;
 }
 
@@ -132,7 +119,7 @@ export function setCurrentPeopleTab(tab) {
 export function getLoadingStepsRemaining() {
   return loadingStepsRemaining;
 }
-export function setLoadingStepsRemaining(n) {
+export function setLoadingStepsRemaining(n: number) {
   loadingStepsRemaining = n;
 }
 
@@ -147,14 +134,14 @@ export function decrementLoadingSteps() {
 export function getEvidenceViewLoading() {
   return evidenceViewLoading;
 }
-export function setEvidenceViewLoading(val) {
+export function setEvidenceViewLoading(val: boolean) {
   evidenceViewLoading = val;
 }
 
 export function getViewRendered() {
   return viewRendered;
 }
-export function markViewRendered(viewName) {
+export function markViewRendered(viewName: string) {
   viewRendered[viewName] = true;
 }
 
@@ -162,7 +149,7 @@ export function markViewRendered(viewName) {
 export function getNotesStore() {
   return notesStore;
 }
-export function setNotesStore(store) {
+export function setNotesStore(store: Record<string, string>) {
   notesStore = store;
 }
 
