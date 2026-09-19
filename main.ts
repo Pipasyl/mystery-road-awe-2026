@@ -38,7 +38,25 @@ import {
   saveHypothesis,
   closeEvidenceDetail,
   saveCurrentNote,
-} from "./views.js";
+} from "./views";
+
+declare global {
+  interface Window {
+    navigateTo: typeof navigateTo;
+    switchPeopleTab: typeof switchPeopleTab;
+    handleSortChange: typeof handleSortChange;
+    saveHypothesis: typeof saveHypothesis;
+    closeEvidenceDetail: typeof closeEvidenceDetail;
+    saveCurrentNote: typeof saveCurrentNote;
+    renderEvidenceList: typeof renderEvidenceList;
+  }
+}
+
+function getEl<T extends HTMLElement = HTMLElement>(id: string): T {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`Element #${id} not found in the page`);
+  return el as T;
+}
 
 // Bridge for inline onclick="..." attributes in index.html and in HTML
 // strings views.js generates — those run as plain global JavaScript and
@@ -86,7 +104,7 @@ function handleHashChange() {
     // loop counter -> let
     sections[i].classList.remove("active");
   }
-  document.getElementById("view-" + hash).classList.add("active");
+  getEl("view-" + hash).classList.add("active");
 
   const navButtons = document.querySelectorAll(".nav-btn");
   for (let n = 0; n < navButtons.length; n++) {
@@ -131,27 +149,28 @@ function setupEventListeners() {
     });
   }
 
-  document.getElementById("evidenceSearch").addEventListener("input", handleSearchInput);
+  getEl("evidenceSearch").addEventListener("input", handleSearchInput);
 
-  document.getElementById("filterType").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterPerson").addEventListener("change", renderEvidenceList);
-  document.getElementById("filterLocation").addEventListener("change", renderEvidenceList);
+  getEl("filterType").addEventListener("change", renderEvidenceList);
+  getEl("filterPerson").addEventListener("change", renderEvidenceList);
+  getEl("filterLocation").addEventListener("change", renderEvidenceList);
 
   // NOTE: filterStatus is wired up TWICE — addEventListener AND an
   // inline onchange string. Already this way in the original code.
-  document.getElementById("filterStatus").addEventListener("change", renderEvidenceList);
+  getEl("filterStatus").addEventListener("change", renderEvidenceList);
 
-  document.getElementById("filterRelevance").addEventListener("change", renderEvidenceList);
+  getEl("filterRelevance").addEventListener("change", renderEvidenceList);
 
-  document.getElementById("clearFiltersBtn").addEventListener("click", clearFilters);
+  getEl("clearFiltersBtn").addEventListener("click", clearFilters);
 
-  document.getElementById("timelineOrder").addEventListener("change", renderTimeline);
-  document.getElementById("timelinePersonFilter").addEventListener("change", renderTimeline);
-  document.getElementById("timelineLocationFilter").addEventListener("change", renderTimeline);
-  document.getElementById("timelineTypeFilter").addEventListener("change", renderTimeline);
+  getEl("timelineOrder").addEventListener("change", renderTimeline);
+  getEl("timelinePersonFilter").addEventListener("change", renderTimeline);
+  getEl("timelineLocationFilter").addEventListener("change", renderTimeline);
+  getEl("timelineTypeFilter").addEventListener("change", renderTimeline);
   //task 10
-  document.getElementById("hypConfidence").addEventListener("input", (e) => {
-    document.getElementById("hypConfidenceValue").textContent = e.target.value;
+  const hypConfidence = getEl<HTMLInputElement>("hypConfidence");
+  hypConfidence.addEventListener("input", () => {
+    getEl("hypConfidenceValue").textContent = hypConfidence.value;
   });
 }
 
