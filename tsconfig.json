@@ -5,11 +5,12 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
+    "jsx": "react-jsx",
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["*.ts", "*.js"],
+  "include": ["*.ts", "*.tsx", "*.js"],
   "exclude": ["dist", "node_modules", "public"]
 }
