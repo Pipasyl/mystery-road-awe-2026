@@ -1,7 +1,8 @@
+import DashboardPage from './DashboardPage';
 import { useState } from 'react';
 
 // 1. Define the valid routes based on the 5 vanilla views
-type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
+export type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
 
 // 2. Header & Navigation Component
 interface HeaderProps {
@@ -62,16 +63,6 @@ function Header({ currentView, onViewChange }: HeaderProps) {
   );
 }
 
-// 3. Page Stubs
-function DashboardPage() {
-  return (
-    <section className="view active">
-      <h2>Case Dashboard</h2>
-      <p>Dashboard content will be built here during this exercise.</p>
-    </section>
-  );
-}
-
 function EvidencePage() {
   return (
     <section className="view active">
@@ -116,12 +107,12 @@ export default function App() {
   // Determine which component to mount based on state
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'dashboard': return <DashboardPage />;
+      case 'dashboard': return <DashboardPage onViewChange={setCurrentView} />;
       case 'evidence': return <EvidencePage />;
       case 'people': return <PeoplePage />;
       case 'timeline': return <TimelinePage />;
       case 'workspace': return <WorkspacePage />;
-      default: return <DashboardPage />;
+      default: return <DashboardPage onViewChange={setCurrentView} />;
     }
   };
 
