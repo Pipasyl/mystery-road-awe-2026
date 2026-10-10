@@ -4,6 +4,7 @@ import ViewSection from './components/ViewSection';
 import TimelineList from './timeline/TimelineList';
 import PeopleList from './people-locations/PeopleList';
 import LocationsList from './people-locations/LocationsList';
+import KeyDemo from './components/KeyDemo'; // TEMPORARY (Demo 4), delete later
 import { getAllTimeline, getAllPeople, getAllLocations } from './state';
 
 // 1. Define the valid routes based on the 5 vanilla views
@@ -83,6 +84,7 @@ function PeoplePage() {
       {/* Temporary: both lists on one page.
           In Demo 8 they become two separate routes (/team/people, /team/locations). */}
       <PeopleList people={getAllPeople()} />
+            <KeyDemo /> {/* TEMPORARY (Demo 4), delete later */}
       <LocationsList locations={getAllLocations()} />
     </ViewSection>
   );
