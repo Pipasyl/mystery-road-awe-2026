@@ -1,5 +1,6 @@
 import DashboardPage from './DashboardPage';
 import { useState } from 'react';
+import ViewSection from './components/ViewSection';
 
 // 1. Define the valid routes based on the 5 vanilla views
 export type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
@@ -74,19 +75,17 @@ function EvidencePage() {
 
 function PeoplePage() {
   return (
-    <section className="view active">
-      <h2>People & Locations</h2>
+    <ViewSection title="People & Locations">
       <p>Stub: Profiles and maps coming soon.</p>
-    </section>
+    </ViewSection>
   );
 }
 
 function TimelinePage() {
   return (
-    <section className="view active">
-      <h2>Investigation Timeline</h2>
+    <ViewSection title="Investigation Timeline">
       <p>Stub: Chronological events coming soon.</p>
-    </section>
+    </ViewSection>
   );
 }
 
