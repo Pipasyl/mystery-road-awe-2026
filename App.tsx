@@ -1,14 +1,14 @@
-import DashboardPage from './DashboardPage';
-import { useState } from 'react';
-import ViewSection from './components/ViewSection';
-import TimelineList from './timeline/TimelineList';
-import PeopleList from './people-locations/PeopleList';
-import LocationsList from './people-locations/LocationsList';
-import KeyDemo from './components/KeyDemo'; // TEMPORARY (Demo 4), delete later
-import { getAllTimeline, getAllPeople, getAllLocations } from './state';
+import DashboardPage from "./DashboardPage";
+import { useState } from "react";
+import ViewSection from "./components/ViewSection";
+import TimelineList from "./timeline/TimelineList";
+import PeopleList from "./people-locations/PeopleList";
+import LocationsList from "./people-locations/LocationsList";
+import KeyDemo from "./components/KeyDemo"; // TEMPORARY (Demo 4), delete later
+import { getAllTimeline, getAllPeople, getAllLocations } from "./state";
 
 // 1. Define the valid routes based on the 5 vanilla views
-export type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
+export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
 // 2. Header & Navigation Component
 interface HeaderProps {
@@ -18,8 +18,7 @@ interface HeaderProps {
 
 function Header({ currentView, onViewChange }: HeaderProps) {
   // Helper to apply an 'active' class to the currently selected tab
-  const getNavClass = (view: View) => 
-    `nav-btn ${currentView === view ? 'active' : ''}`;
+  const getNavClass = (view: View) => `nav-btn ${currentView === view ? "active" : ""}`;
 
   return (
     <header className="app-header">
@@ -28,39 +27,26 @@ function Header({ currentView, onViewChange }: HeaderProps) {
           <img src="assets/logo/logo.svg" alt="Project ReMotion logo" className="brand-logo" />
           <div>
             <h1>Project ReMotion</h1>
-            <p className="subtitle">Investigate the failure of an AI-assisted rehabilitation robot.</p>
+            <p className="subtitle">
+              Investigate the failure of an AI-assisted rehabilitation robot.
+            </p>
           </div>
         </div>
-        
+
         <nav className="main-nav" aria-label="Main navigation">
-          <button 
-            className={getNavClass('dashboard')} 
-            onClick={() => onViewChange('dashboard')}
-          >
+          <button className={getNavClass("dashboard")} onClick={() => onViewChange("dashboard")}>
             Dashboard
           </button>
-          <button 
-            className={getNavClass('evidence')} 
-            onClick={() => onViewChange('evidence')}
-          >
+          <button className={getNavClass("evidence")} onClick={() => onViewChange("evidence")}>
             Evidence
           </button>
-          <button 
-            className={getNavClass('people')} 
-            onClick={() => onViewChange('people')}
-          >
+          <button className={getNavClass("people")} onClick={() => onViewChange("people")}>
             People & Locations
           </button>
-          <button 
-            className={getNavClass('timeline')} 
-            onClick={() => onViewChange('timeline')}
-          >
+          <button className={getNavClass("timeline")} onClick={() => onViewChange("timeline")}>
             Timeline
           </button>
-          <button 
-            className={getNavClass('workspace')} 
-            onClick={() => onViewChange('workspace')}
-          >
+          <button className={getNavClass("workspace")} onClick={() => onViewChange("workspace")}>
             Workspace
           </button>
         </nav>
@@ -84,7 +70,7 @@ function PeoplePage() {
       {/* Temporary: both lists on one page.
           In Demo 8 they become two separate routes (/team/people, /team/locations). */}
       <PeopleList people={getAllPeople()} />
-            <KeyDemo /> {/* TEMPORARY (Demo 4), delete later */}
+      <KeyDemo /> {/* TEMPORARY (Demo 4), delete later */}
       <LocationsList locations={getAllLocations()} />
     </ViewSection>
   );
@@ -113,17 +99,23 @@ function WorkspacePage() {
 // 4. Main App Container (Routing Skeleton)
 export default function App() {
   // Manage the state of the router
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [currentView, setCurrentView] = useState<View>("dashboard");
 
   // Determine which component to mount based on state
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'dashboard': return <DashboardPage onViewChange={setCurrentView} />;
-      case 'evidence': return <EvidencePage />;
-      case 'people': return <PeoplePage />;
-      case 'timeline': return <TimelinePage />;
-      case 'workspace': return <WorkspacePage />;
-      default: return <DashboardPage onViewChange={setCurrentView} />;
+      case "dashboard":
+        return <DashboardPage onViewChange={setCurrentView} />;
+      case "evidence":
+        return <EvidencePage />;
+      case "people":
+        return <PeoplePage />;
+      case "timeline":
+        return <TimelinePage />;
+      case "workspace":
+        return <WorkspacePage />;
+      default:
+        return <DashboardPage onViewChange={setCurrentView} />;
     }
   };
 

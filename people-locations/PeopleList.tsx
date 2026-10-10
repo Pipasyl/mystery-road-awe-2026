@@ -12,8 +12,7 @@ interface PeopleListProps {
 // .filter keeps only the items where the check returns true,
 // .length is how many are left. Same result as the old for loop in views.ts.
 function countEvidenceForPerson(person: Person): number {
-  return getAllEvidence().filter((ev) => evidenceMentionsPerson(ev, person))
-    .length;
+  return getAllEvidence().filter((ev) => evidenceMentionsPerson(ev, person)).length;
 }
 
 export default function PeopleList({ people }: PeopleListProps) {

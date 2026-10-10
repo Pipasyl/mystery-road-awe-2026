@@ -15,11 +15,7 @@ export default function PersonCard({ person, evidenceCount }: PersonCardProps) {
     <div className="person-card">
       <div className="person-card-header">
         {/* Self-closing tag: JSX requires <img ... /> */}
-        <img
-          className="person-avatar"
-          src={person.avatar}
-          alt={"Portrait of " + person.name}
-        />
+        <img className="person-avatar" src={person.avatar} alt={"Portrait of " + person.name} />
         <div>
           <h3>{person.name}</h3>
           <div className="person-role">{person.role}</div>
@@ -40,8 +36,7 @@ export default function PersonCard({ person, evidenceCount }: PersonCardProps) {
       <p>
         {/* Ternary: adds "s" unless the count is exactly 1.
             {" "} forces a real space, because JSX removes spaces at line ends. */}
-        {evidenceCount} related evidence item{evidenceCount === 1 ? "" : "s"}{" "}
-        &mdash;{" "}
+        {evidenceCount} related evidence item{evidenceCount === 1 ? "" : "s"} &mdash;{" "}
         {/* No onClick yet: click handling is out of scope for Exercise 4 */}
         <button type="button" className="evidence-count-link">
           view

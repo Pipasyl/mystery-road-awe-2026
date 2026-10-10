@@ -10,10 +10,7 @@ interface TimelineEventCardProps {
   locationNames: string[];
 }
 
-export default function TimelineEventCard({
-  event,
-  locationNames,
-}: TimelineEventCardProps) {
+export default function TimelineEventCard({ event, locationNames }: TimelineEventCardProps) {
   return (
     // Conditional style (lookup): the class changes with the certainty word,
     // e.g. "timeline-event certainty-confirmed".

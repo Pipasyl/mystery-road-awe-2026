@@ -35,8 +35,8 @@ function IntroCard({ onViewChange }: ViewChangeProps) {
         <div className="howto-item">
           <h4>2. People &amp; Locations</h4>
           <p>
-            Read profiles and statements from the six team members involved, and look up the six
-            key locations in the investigation.
+            Read profiles and statements from the six team members involved, and look up the six key
+            locations in the investigation.
           </p>
           <Button onClick={() => onViewChange("people")}>Go to People &amp; Locations</Button>
         </div>
