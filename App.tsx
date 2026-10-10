@@ -2,7 +2,9 @@ import DashboardPage from './DashboardPage';
 import { useState } from 'react';
 import ViewSection from './components/ViewSection';
 import TimelineList from './timeline/TimelineList';
-import { getAllTimeline } from './state';
+import PeopleList from './people-locations/PeopleList';
+import LocationsList from './people-locations/LocationsList';
+import { getAllTimeline, getAllPeople, getAllLocations } from './state';
 
 // 1. Define the valid routes based on the 5 vanilla views
 export type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
@@ -78,7 +80,10 @@ function EvidencePage() {
 function PeoplePage() {
   return (
     <ViewSection title="People & Locations">
-      <p>Stub: Profiles and maps coming soon.</p>
+      {/* Temporary: both lists on one page.
+          In Demo 8 they become two separate routes (/team/people, /team/locations). */}
+      <PeopleList people={getAllPeople()} />
+      <LocationsList locations={getAllLocations()} />
     </ViewSection>
   );
 }
