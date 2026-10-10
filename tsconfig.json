@@ -11,6 +11,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["*.ts", "*.tsx", "*.js"],
+  "include": ["*.ts", "*.tsx", "*.js", "components/UI.tsx"],
   "exclude": ["dist", "node_modules", "public"]
 }

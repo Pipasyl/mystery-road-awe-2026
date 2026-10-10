@@ -1,7 +1,8 @@
-import { Badge, Button, StatCard } from "./UI";
-import type { CaseData } from "./types";
-import type { View } from "./App";
-import { formatDate, getStatusBadgeClass } from "./utils";
+// "../" = go one folder up, because this file now lives in dashboard/
+import { Badge, Button, StatCard } from "../components/UI";
+import type { CaseData } from "../types";
+import type { View } from "../App";
+import { formatDate, getStatusBadgeClass } from "../utils";
 import {
   getAllEvidence,
   getCaseData,
@@ -9,7 +10,7 @@ import {
   getAllLocations,
   getBookmarks,
   getAllTimeline,
-} from "./state";
+} from "../state";
 
 interface ViewChangeProps {
   onViewChange: (view: View) => void;
