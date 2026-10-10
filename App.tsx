@@ -1,6 +1,8 @@
 import DashboardPage from './DashboardPage';
 import { useState } from 'react';
 import ViewSection from './components/ViewSection';
+import TimelineList from './timeline/TimelineList';
+import { getAllTimeline } from './state';
 
 // 1. Define the valid routes based on the 5 vanilla views
 export type View = 'dashboard' | 'evidence' | 'people' | 'timeline' | 'workspace';
@@ -84,7 +86,10 @@ function PeoplePage() {
 function TimelinePage() {
   return (
     <ViewSection title="Investigation Timeline">
-      <p>Stub: Chronological events coming soon.</p>
+      {/* getAllTimeline() returns the list loaded in state.ts.
+          react-main.tsx renders the app only after loading is done,
+          so the list is already filled here. */}
+      <TimelineList events={getAllTimeline()} />
     </ViewSection>
   );
 }
