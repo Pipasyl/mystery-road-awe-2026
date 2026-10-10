@@ -1,8 +1,8 @@
 import type { Person } from "../types";
 import { evidenceMentionsPerson } from "../utils";
 import { getAllEvidence } from "../state";
-import EmptyState from "../components/EmptyState";
-import PersonCard from "./PersonCard";
+import PeopleGrid from "./PeopleGrid";
+import type { PersonWithCount } from "./PeopleGrid";
 
 interface PeopleListProps {
   people: Person[];
@@ -10,28 +10,19 @@ interface PeopleListProps {
 
 // Counts how many evidence items mention this person.
 // .filter keeps only the items where the check returns true,
-// .length is how many are left. Same result as the old for loop in views.ts.
+// .length is how many are left.
 function countEvidenceForPerson(person: Person): number {
   return getAllEvidence().filter((ev) => evidenceMentionsPerson(ev, person)).length;
 }
 
+// FEATURE component: its only job is the DATA (reading state, counting).
+// It does not draw anything itself, PeopleGrid does that.
 export default function PeopleList({ people }: PeopleListProps) {
-  // Early return: no people means we show a message, not a blank page.
-  if (people.length === 0) {
-    return <EmptyState message="No people found." />;
-  }
+  // Build one { person, evidenceCount } row per person, then hand them down.
+  const items: PersonWithCount[] = people.map((person) => ({
+    person,
+    evidenceCount: countEvidenceForPerson(person),
+  }));
 
-  return (
-    // "people-grid" is the class from the old HTML, so styles.css still lays out the cards.
-    <div className="people-grid">
-      {/* key = the person's stable id, so React can tell the cards apart */}
-      {people.map((person) => (
-        <PersonCard
-          key={person.id}
-          person={person}
-          evidenceCount={countEvidenceForPerson(person)}
-        />
-      ))}
-    </div>
-  );
+  return <PeopleGrid items={items} />;
 }

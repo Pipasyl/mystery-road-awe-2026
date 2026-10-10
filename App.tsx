@@ -70,7 +70,7 @@ function PeoplePage() {
       {/* Temporary: both lists on one page.
           In Demo 8 they become two separate routes (/team/people, /team/locations). */}
       <PeopleList people={getAllPeople()} />
-            {/* PRESENTATION: un-comment to show the key demo <KeyDemo /> */}
+      {/* PRESENTATION: un-comment to show the key demo <KeyDemo /> */}
       <LocationsList locations={getAllLocations()} />
     </ViewSection>
   );
