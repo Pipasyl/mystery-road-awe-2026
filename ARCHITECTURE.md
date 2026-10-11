@@ -33,3 +33,30 @@ components/         ViewSection, EmptyState, UI (Badge, Button, StatCard),
   `PeopleGrid`).
 - **Feature:** reads data from `state.ts` or calculates something, then hands
   the result down (`PeopleList`, `TimelinePage`).
+
+## Routes (HashRouter, addresses look like `react.html#/timeline`)
+
+| Address                     | Component                                   |
+| --------------------------- | ------------------------------------------- |
+| `#/`                        | DashboardPage                               |
+| `#/team`                    | redirects to `#/team/people`                |
+| `#/team/people`             | PeoplePage (frame) + PeopleTab              |
+| `#/team/locations`          | PeoplePage (frame) + LocationsTab           |
+| `#/team/people/:personId`   | PeoplePage (frame) + PersonDetail           |
+| `#/timeline?person=<id>`    | TimelinePage (query param = initial filter) |
+| `#/evidence`, `#/workspace` | stubs (Exercise 5)                          |
+| anything else               | NotFoundPage                                |
+
+- HashRouter is used because the React app starts from `react.html`. The part
+  after `#` never goes to the server, so reload and bookmarks work.
+- `/team` is a parent route. `PeoplePage` draws the title and the tabs, and
+  an `<Outlet />` shows the matching child route.
+
+## Files added for routing
+
+- `people-locations/PeopleLocationsTabs.tsx`: the two tabs (NavLink).
+- `people-locations/PersonDetail.tsx`: reads `:personId` with `useParams`.
+- `people-locations/evidenceCount.ts`: counting rule shared by the list and
+  the detail page.
+- `timeline/TimelineFilters.tsx`: filter dropdowns, visually complete but not
+  wired (no state, Exercise 5).
