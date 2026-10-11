@@ -1,17 +1,17 @@
 import type { Certainty } from "../types";
 import { certaintyBadgeClass } from "../utils";
+// Badge is the shared element from components/UI.tsx.
+// The Dashboard uses it too, so there is only ONE place that defines
+// what a badge looks like (the <span> and the "badge badge-..." classes).
+import { Badge } from "../components/UI";
 
 // Certainty is a union type: only "confirmed" | "contradictory" | "reported".
-// Any other word is a TypeScript error.
 interface CertaintyBadgeProps {
   certainty: Certainty;
 }
 
+// Thin wrapper: it only translates a certainty word into a Badge variant.
+// "confirmed" -> "reviewed", so the result is <span class="badge badge-reviewed">.
 export default function CertaintyBadge({ certainty }: CertaintyBadgeProps) {
-  return (
-    // Lookup technique: certaintyBadgeClass turns the word into a CSS class,
-    // e.g. "confirmed" -> "reviewed", so the badge gets "badge badge-reviewed".
-    // We import the existing function instead of copying it (one single version).
-    <span className={"badge badge-" + certaintyBadgeClass(certainty)}>{certainty}</span>
-  );
+  return <Badge variant={certaintyBadgeClass(certainty)}>{certainty}</Badge>;
 }
