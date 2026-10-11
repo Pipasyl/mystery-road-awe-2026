@@ -1,5 +1,5 @@
 import type { Person } from "../types";
-
+import { Link } from "react-router";
 // Typed props: the card MUST get a Person (8 fields) and a number.
 interface PersonCardProps {
   person: Person;
@@ -17,7 +17,10 @@ export default function PersonCard({ person, evidenceCount }: PersonCardProps) {
         {/* Self-closing tag: JSX requires <img ... /> */}
         <img className="person-avatar" src={person.avatar} alt={"Portrait of " + person.name} />
         <div>
-          <h3>{person.name}</h3>
+          {/* Link goes to the parameterized route: person.id fills the :personId part. */}
+          <h3>
+            <Link to={`/team/people/${person.id}`}>{person.name}</Link>
+          </h3>
           <div className="person-role">{person.role}</div>
         </div>
       </div>

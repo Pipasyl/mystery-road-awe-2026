@@ -5,6 +5,7 @@ import ViewSection from "./components/ViewSection";
 import PeoplePage from "./people-locations/PeoplePage";
 import PeopleTab from "./people-locations/PeopleTab";
 import LocationsTab from "./people-locations/LocationsTab";
+import PersonDetail from "./people-locations/PersonDetail";
 import TimelinePage from "./timeline/TimelinePage";
 
 // The 5 views of the app (still used by Header and DashboardPage).
@@ -75,6 +76,8 @@ export default function App() {
             <Route index element={<Navigate to="/team/people" replace />} />
             <Route path="people" element={<PeopleTab />} />
             <Route path="locations" element={<LocationsTab />} />
+            {/* :personId is a variable part: one route handles every person. */}
+            <Route path="people/:personId" element={<PersonDetail />} />
           </Route>
           <Route path="/timeline" element={<TimelinePage />} />
           <Route path="/workspace" element={<WorkspacePage />} />
