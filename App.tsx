@@ -1,58 +1,86 @@
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router";
 import DashboardPage from "./dashboard/DashboardPage";
-import { useState } from "react";
 import Header from "./shell/Header";
-import TimelinePage from "./timeline/TimelinePage";
+import ViewSection from "./components/ViewSection";
 import PeoplePage from "./people-locations/PeoplePage";
+import PeopleTab from "./people-locations/PeopleTab";
+import LocationsTab from "./people-locations/LocationsTab";
+import TimelinePage from "./timeline/TimelinePage";
 
-// 1. Define the valid routes based on the 5 vanilla views
+// The 5 views of the app (still used by Header and DashboardPage).
 export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
+// One address per view. This is the only place that knows the URLs.
+const PATHS: Record<View, string> = {
+  dashboard: "/",
+  evidence: "/evidence",
+  people: "/team/people",
+  timeline: "/timeline",
+  workspace: "/workspace",
+};
+
+// Reverse direction: address -> view word (so Header can mark the active button).
+function viewFromPath(pathname: string): View {
+  if (pathname.startsWith("/team")) return "people";
+  if (pathname.startsWith("/timeline")) return "timeline";
+  if (pathname.startsWith("/evidence")) return "evidence";
+  if (pathname.startsWith("/workspace")) return "workspace";
+  return "dashboard";
+}
+
+// Stubs: these belong to Exercise 5.
 function EvidencePage() {
   return (
-    <section className="view active">
-      <h2>Evidence Catalogue</h2>
+    <ViewSection title="Evidence Catalogue">
       <p>Stub: Evidence functionality coming in later exercises.</p>
-    </section>
+    </ViewSection>
   );
 }
 
 function WorkspacePage() {
   return (
-    <section className="view active">
-      <h2>Investigator Workspace</h2>
+    <ViewSection title="Investigator Workspace">
       <p>Stub: Bookmarks and Hypothesis draft coming soon.</p>
-    </section>
+    </ViewSection>
   );
 }
 
-// 4. Main App Container (Routing Skeleton)
-export default function App() {
-  // Manage the state of the router
-  const [currentView, setCurrentView] = useState<View>("dashboard");
+// Shown when the address matches no route.
+function NotFoundPage() {
+  return (
+    <ViewSection title="Page not found">
+      <p>This address does not exist.</p>
+    </ViewSection>
+  );
+}
 
-  // Determine which component to mount based on state
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case "dashboard":
-        return <DashboardPage onViewChange={setCurrentView} />;
-      case "evidence":
-        return <EvidencePage />;
-      case "people":
-        return <PeoplePage />;
-      case "timeline":
-        return <TimelinePage />;
-      case "workspace":
-        return <WorkspacePage />;
-      default:
-        return <DashboardPage onViewChange={setCurrentView} />;
-    }
-  };
+export default function App() {
+  const navigate = useNavigate(); // function: changes the address
+  const location = useLocation(); // object: knows the current address
+
+  // Called by Header and DashboardPage with a view word: we turn it into a navigation.
+  const handleViewChange = (view: View) => navigate(PATHS[view]);
 
   return (
     <>
-      <Header currentView={currentView} onViewChange={setCurrentView} />
+      <Header currentView={viewFromPath(location.pathname)} onViewChange={handleViewChange} />
       <main id="app" className="app-main">
-        {renderCurrentView()}
+        {/* The router picks the first route whose path fits the address. */}
+        <Routes>
+          <Route path="/" element={<DashboardPage onViewChange={handleViewChange} />} />
+          <Route path="/evidence" element={<EvidencePage />} />
+          {/* Parent route: PeoplePage is the frame, children go into its <Outlet />. */}
+          <Route path="/team" element={<PeoplePage />}>
+            {/* "/team" alone redirects to the people tab. replace = no extra Back-button entry. */}
+            <Route index element={<Navigate to="/team/people" replace />} />
+            <Route path="people" element={<PeopleTab />} />
+            <Route path="locations" element={<LocationsTab />} />
+          </Route>
+          <Route path="/timeline" element={<TimelinePage />} />
+          <Route path="/workspace" element={<WorkspacePage />} />
+          {/* "*" matches everything that no route above matched. */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </main>
     </>
   );

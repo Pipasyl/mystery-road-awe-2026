@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { HashRouter } from "react-router";
 import {
   loadBookmarksFromStorage,
   loadCorePeopleAndLocations,
@@ -20,7 +21,13 @@ loadBookmarksFromStorage();
 let pending = 3;
 function onLoaded() {
   pending--;
-  if (pending === 0) root.render(<App />);
+  // HashRouter must wrap the whole app so every component can read the URL.
+  if (pending === 0)
+    root.render(
+      <HashRouter>
+        <App />
+      </HashRouter>,
+    );
 }
 
 void loadCorePeopleAndLocations(onLoaded);

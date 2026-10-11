@@ -1,19 +1,18 @@
+import { Outlet } from "react-router";
 import ViewSection from "../components/ViewSection";
-import { getAllPeople, getAllLocations } from "../state";
-import PeopleList from "./PeopleList";
-import LocationsList from "./LocationsList";
+import PeopleLocationsTabs from "./PeopleLocationsTabs";
 // PRESENTATION (Demo 4): un-comment this import and the <KeyDemo /> line below
 // import KeyDemo from "../components/KeyDemo";
 
-// FEATURE component: the whole People & Locations page.
-// It reads the data and hands it to the two lists.
+// Layout component: the frame shared by /team/people and /team/locations.
+// The title and the tabs stay on screen, only the content below them changes.
 export default function PeoplePage() {
   return (
     <ViewSection title="People & Locations">
-      {/* Temporary: both lists on one page.
-          In Demo 8 they become two routes (/team/people, /team/locations). */}
-      <PeopleList people={getAllPeople()} />
-      <LocationsList locations={getAllLocations()} />
+      <PeopleLocationsTabs />
+      {/* Outlet = the hole where the router puts the matching child route
+          (PeopleTab or LocationsTab). */}
+      <Outlet />
       {/* PRESENTATION (Demo 4): un-comment to show the key demo <KeyDemo /> */}
     </ViewSection>
   );
