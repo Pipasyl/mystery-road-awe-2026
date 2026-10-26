@@ -7,7 +7,7 @@ import PeopleTab from "./people-locations/PeopleTab";
 import LocationsTab from "./people-locations/LocationsTab";
 import PersonDetail from "./people-locations/PersonDetail";
 import TimelinePage from "./timeline/TimelinePage";
-
+import { EvidenceCatalogue } from "./evidence/EvidenceCatalogue";
 // The 5 views of the app (still used by Header and DashboardPage).
 export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
@@ -27,15 +27,6 @@ function viewFromPath(pathname: string): View {
   if (pathname.startsWith("/evidence")) return "evidence";
   if (pathname.startsWith("/workspace")) return "workspace";
   return "dashboard";
-}
-
-// Stubs: these belong to Exercise 5.
-function EvidencePage() {
-  return (
-    <ViewSection title="Evidence Catalogue">
-      <p>Stub: Evidence functionality coming in later exercises.</p>
-    </ViewSection>
-  );
 }
 
 function WorkspacePage() {
@@ -69,7 +60,7 @@ export default function App() {
         {/* The router picks the first route whose path fits the address. */}
         <Routes>
           <Route path="/" element={<DashboardPage onViewChange={handleViewChange} />} />
-          <Route path="/evidence" element={<EvidencePage />} />
+          <Route path="/evidence" element={<EvidenceCatalogue />} />
           {/* Parent route: PeoplePage is the frame, children go into its <Outlet />. */}
           <Route path="/team" element={<PeoplePage />}>
             {/* "/team" alone redirects to the people tab. replace = no extra Back-button entry. */}
