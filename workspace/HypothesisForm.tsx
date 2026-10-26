@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { STORAGE_KEY_HYPOTHESIS, getAllEvidence, getAllPeople } from "../state";
 
-// 1. Define the TypeScript shape so the red squiggles go away
 interface HypothesisDraft {
   suspectId: string;
   nature: string;
@@ -8,11 +9,15 @@ interface HypothesisDraft {
   confidence: string;
   explanation: string;
   alternative: string;
+  savedAt?: string;
 }
 
 export function HypothesisForm() {
-  // 2. Initialize the single state object for all fields
-  const [draft, setDraft] = useState<HypothesisDraft>({
+  const people = getAllPeople();
+  const evidence = getAllEvidence();
+
+  // One state object for all 6 form fields. Every input shows its value from here.
+  const [draft, setDraft] = useState<Omit<HypothesisDraft, "savedAt">>({
     suspectId: "",
     nature: "",
     evidenceIds: [],
@@ -21,73 +26,126 @@ export function HypothesisForm() {
     alternative: "",
   });
 
-  // 3. The universal change handler for all input types
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
+  // Controls the small "Saved" message
+  const [showSaved, setShowSaved] = useState(false);
+
+  // One handler for all inputs: the input's name attribute says which field to update.
+  // The multi-select returns an array of the selected option values, all others a string.
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) {
     const target = e.target;
-    const name = target.name;
+    const value =
+      target instanceof HTMLSelectElement && target.multiple
+        ? Array.from(target.selectedOptions, (option) => option.value)
+        : target.value;
+    // New object every time, the old draft is never edited
+    setDraft((prev) => ({ ...prev, [target.name]: value }));
+  }
 
-    // Handle the multi-select specifically
-    if (target.type === "select-multiple") {
-      const selectTarget = target as HTMLSelectElement;
-      const selectedValues = Array.from(selectTarget.selectedOptions, (option) => option.value);
-      setDraft((prev) => ({ ...prev, [name]: selectedValues }));
-    } else {
-      setDraft((prev) => ({ ...prev, [name]: target.value }));
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); // stops the browser from reloading the page
+    const toSave: HypothesisDraft = { ...draft, savedAt: new Date().toISOString() };
+    try {
+      localStorage.setItem(STORAGE_KEY_HYPOTHESIS, JSON.stringify(toSave));
+    } catch (err) {
+      console.error("Could not save hypothesis draft", err);
+      alert("Your hypothesis could not be saved to local storage.");
+      return;
     }
-  };
-
-  // 4. Save to localStorage (Task 3)
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem("hypothesis_draft", JSON.stringify(draft));
-    alert("Hypothesis saved to localStorage!");
-  };
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="hypothesis-form">
-      <h3>Hypothesis Workspace</h3>
+    <div className="hypothesis-card">
+      <h3>Hypothesis Draft</h3>
+      <form id="hypothesisForm" onSubmit={handleSubmit}>
+        <div className="form-row">
+          <label htmlFor="hypSuspect">Suspected responsible person</label>
+          <select id="hypSuspect" name="suspectId" value={draft.suspectId} onChange={handleChange}>
+            <option value="">Select a person…</option>
+            {people.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <label>Suspect:</label>
-      <select name="suspectId" value={draft.suspectId} onChange={handleChange}>
-        <option value="">Select a person...</option>
-        <option value="p-1">Person 1</option>
-        <option value="p-2">Person 2</option>
-      </select>
+        <div className="form-row">
+          <label htmlFor="hypNature">Accidental or deliberate incident</label>
+          <select id="hypNature" name="nature" value={draft.nature} onChange={handleChange}>
+            <option value="">Select…</option>
+            <option value="accidental">Accidental</option>
+            <option value="deliberate">Deliberate</option>
+            <option value="unclear">Unclear</option>
+          </select>
+        </div>
 
-      <label>Nature of involvement:</label>
-      <select name="nature" value={draft.nature} onChange={handleChange}>
-        <option value="">Select nature...</option>
-        <option value="direct">Direct</option>
-        <option value="indirect">Indirect</option>
-      </select>
+        <div className="form-row">
+          <label htmlFor="hypEvidence">Selected supporting evidence</label>
+          <select
+            id="hypEvidence"
+            name="evidenceIds"
+            multiple
+            size={6}
+            value={draft.evidenceIds}
+            onChange={handleChange}
+          >
+            {evidence.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.id} – {ev.title}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <label>Supporting Evidence (Multi-select):</label>
-      <select name="evidenceIds" multiple value={draft.evidenceIds} onChange={handleChange}>
-        <option value="ev-1">EV-1</option>
-        <option value="ev-2">EV-2</option>
-      </select>
+        <div className="form-row">
+          <label htmlFor="hypConfidence">Confidence (0–100)</label>
+          <input
+            type="range"
+            id="hypConfidence"
+            name="confidence"
+            min="0"
+            max="100"
+            value={draft.confidence}
+            onChange={handleChange}
+          />
+          <output id="hypConfidenceValue">{draft.confidence}</output>
+        </div>
 
-      <label>Confidence Level: {draft.confidence}%</label>
-      <input
-        type="range"
-        name="confidence"
-        min="0"
-        max="100"
-        value={draft.confidence}
-        onChange={handleChange}
-      />
+        <div className="form-row">
+          <label htmlFor="hypExplanation">Written explanation</label>
+          <textarea
+            id="hypExplanation"
+            name="explanation"
+            rows={4}
+            placeholder="Explain your reasoning…"
+            value={draft.explanation}
+            onChange={handleChange}
+          />
+        </div>
 
-      <label>Explanation:</label>
-      <textarea name="explanation" value={draft.explanation} onChange={handleChange} />
+        <div className="form-row">
+          <label htmlFor="hypAlternative">Alternative explanation</label>
+          <textarea
+            id="hypAlternative"
+            name="alternative"
+            rows={3}
+            placeholder="What else could explain the evidence?"
+            value={draft.alternative}
+            onChange={handleChange}
+          />
+        </div>
 
-      <label>Alternative explanation:</label>
-      <textarea name="alternative" value={draft.alternative} onChange={handleChange} />
-
-      <button type="submit" className="btn btn-primary">
-        Save hypothesis draft
-      </button>
-    </form>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary">
+            Save hypothesis draft
+          </button>
+          <span className={"saved-msg " + (showSaved ? "" : "hidden")}>Saved</span>
+        </div>
+      </form>
+    </div>
   );
 }

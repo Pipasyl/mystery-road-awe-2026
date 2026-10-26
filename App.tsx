@@ -8,6 +8,7 @@ import LocationsTab from "./people-locations/LocationsTab";
 import PersonDetail from "./people-locations/PersonDetail";
 import TimelinePage from "./timeline/TimelinePage";
 import { EvidenceCatalogue } from "./evidence/EvidenceCatalogue";
+import { WorkspacePage } from "./workspace/WorkspacePage";
 // The 5 views of the app (still used by Header and DashboardPage).
 export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
@@ -27,14 +28,6 @@ function viewFromPath(pathname: string): View {
   if (pathname.startsWith("/evidence")) return "evidence";
   if (pathname.startsWith("/workspace")) return "workspace";
   return "dashboard";
-}
-
-function WorkspacePage() {
-  return (
-    <ViewSection title="Investigator Workspace">
-      <p>Stub: Bookmarks and Hypothesis draft coming soon.</p>
-    </ViewSection>
-  );
 }
 
 // Shown when the address matches no route.
