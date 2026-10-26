@@ -10,6 +10,7 @@ import {
 } from "../state";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar, type SortOrder } from "./FilterToolbar";
+import { toggleId } from "./toggleId";
 
 export function EvidenceCatalogue() {
   // Read the data from the state.ts getters (same ones the old views used)
@@ -25,10 +26,14 @@ export function EvidenceCatalogue() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("date-desc");
 
   function handleToggleBookmark(evidenceId: string) {
-    // Build a NEW array: never push into or edit the old one
-    const next = bookmarkedIds.includes(evidenceId)
-      ? bookmarkedIds.filter((id) => id !== evidenceId)
-      : [...bookmarkedIds, evidenceId];
+    const next = toggleId(bookmarkedIds, evidenceId);
+
+    // Immutability check (development only): the result must be a different array
+    // than the old one. If it is the same reference, React would not redraw.
+    if (import.meta.env.DEV && next === bookmarkedIds) {
+      console.error("toggleId returned the same array: bookmarks were mutated!");
+    }
+
     setBookmarkedIds(next); // tells React: draw again with this list
     setBookmarks(next); // keeps state.ts in sync, so the Dashboard sees it too
     saveBookmarksToStorage(); // same save as the old code (localStorage)
@@ -46,7 +51,6 @@ export function EvidenceCatalogue() {
   );
 
   // Step 2: sort. We sort `filtered` (a copy), never the master list.
-  // This is the exact bug of the old app: sorting the shared master array.
   const visibleEvidence = filtered.sort((a, b) => {
     if (sortOrder === "title-asc") return a.title.localeCompare(b.title);
     if (sortOrder === "title-desc") return b.title.localeCompare(a.title);
