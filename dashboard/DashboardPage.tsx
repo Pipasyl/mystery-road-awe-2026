@@ -1,9 +1,9 @@
 // "../" = go one folder up, because this file now lives in dashboard/
+import { useBookmarks } from "../components/BookmarkContext"; // NEW
 import { Badge, Button, StatCard } from "../components/UI";
 import type { CaseData } from "../types";
 import type { View } from "../App";
 import { formatDate, getStatusBadgeClass } from "../utils";
-// CHANGED: getBookmarks is no longer imported, the list now comes from App as a prop
 import {
   getAllEvidence,
   getCaseData,
@@ -14,11 +14,6 @@ import {
 
 interface ViewChangeProps {
   onViewChange: (view: View) => void;
-}
-
-// NEW: DashboardPage needs the same props as before PLUS the bookmark list from App
-interface DashboardPageProps extends ViewChangeProps {
-  bookmarkedIds: string[];
 }
 
 function IntroCard({ onViewChange }: ViewChangeProps) {
@@ -91,8 +86,9 @@ function ReviewProgress({ percentage }: { percentage: number }) {
   );
 }
 
-// CHANGED: bookmarkedIds is now a prop (a value App hands to this component)
-export default function DashboardPage({ onViewChange, bookmarkedIds }: DashboardPageProps) {
+// CHANGED: bookmarkedIds is no longer a prop, it comes from Context.
+export default function DashboardPage({ onViewChange }: ViewChangeProps) {
+  const { bookmarkedIds } = useBookmarks(); // NEW: read the bookmark list from Context
   const allEvidence = getAllEvidence();
   const caseData = getCaseData();
 
@@ -114,7 +110,7 @@ export default function DashboardPage({ onViewChange, bookmarkedIds }: Dashboard
         <StatCard value={allEvidence.length} label="Evidence items" />
         <StatCard value={getAllPeople().length} label="People" />
         <StatCard value={getAllLocations().length} label="Locations" />
-        {/* DERIVED: count comes from the bookmark list owned by App, not stored here */}
+        {/* DERIVED: count comes from the bookmark list in Context, not stored here */}
         <StatCard value={bookmarkedIds.length} label="Bookmarked" />
         <StatCard value={reviewedCount} label="Reviewed" />
       </div>

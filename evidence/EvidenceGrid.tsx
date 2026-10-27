@@ -1,21 +1,14 @@
 import type { Evidence } from "../types";
 import { EvidenceCard } from "./EvidenceCard";
 
-// The grid receives the list to show, the bookmarked ids and the callbacks.
-// It owns no data itself: it only draws what it is given and passes callbacks on.
+// The grid receives the list to show and the note callback.
+// CHANGED: no bookmark props any more, so the grid doesn't even know about bookmarks.
 type EvidenceGridProps = {
   items: Evidence[];
-  bookmarkedIds: string[];
-  onToggleBookmark: (id: string) => void;
-  onAddNote: (evidenceId: string, text: string) => void; // NEW: just passed on to each card
+  onAddNote: (evidenceId: string, text: string) => void;
 };
 
-export function EvidenceGrid({
-  items,
-  bookmarkedIds,
-  onToggleBookmark,
-  onAddNote,
-}: EvidenceGridProps) {
+export function EvidenceGrid({ items, onAddNote }: EvidenceGridProps) {
   // Same message as the old code when the list is empty
   if (items.length === 0) {
     return <p>No evidence matches the current filters.</p>;
@@ -24,13 +17,7 @@ export function EvidenceGrid({
   return (
     <div className="evidence-grid">
       {items.map((ev) => (
-        <EvidenceCard
-          key={ev.id}
-          ev={ev}
-          isBookmarked={bookmarkedIds.includes(ev.id)}
-          onToggleBookmark={onToggleBookmark}
-          onAddNote={onAddNote}
-        />
+        <EvidenceCard key={ev.id} ev={ev} onAddNote={onAddNote} />
       ))}
     </div>
   );

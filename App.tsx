@@ -3,17 +3,15 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router"
 import DashboardPage from "./dashboard/DashboardPage";
 import Header from "./shell/Header";
 import ViewSection from "./components/ViewSection";
+import { BookmarkProvider } from "./components/BookmarkProvider"; // NEW
 import PeoplePage from "./people-locations/PeoplePage";
 import PeopleTab from "./people-locations/PeopleTab";
 import LocationsTab from "./people-locations/LocationsTab";
 import PersonDetail from "./people-locations/PersonDetail";
 import TimelinePage from "./timeline/TimelinePage";
 import { EvidenceCatalogue } from "./evidence/EvidenceCatalogue";
-import { toggleId } from "./evidence/toggleId";
 import { WorkspacePage } from "./workspace/WorkspacePage";
-import type { Note } from "./workspace/Note"; // NEW: the type of one note
-import { saveBookmarksToStorage } from "./api";
-import { getBookmarks, setBookmarks } from "./state";
+import type { Note } from "./workspace/Note";
 // The 5 views of the app (still used by Header and DashboardPage).
 export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
@@ -48,27 +46,12 @@ export default function App() {
   const navigate = useNavigate(); // function: changes the address
   const location = useLocation(); // object: knows the current address
 
-  // LIFTED STATE: the ONE place where the bookmark list lives.
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(getBookmarks());
+  // CHANGED: the bookmark state is gone from App, it now lives in <BookmarkProvider>.
 
-  // NEW: LIFTED STATE for notes. The card form adds notes, the Workspace shows them,
-  // so the state lives in App (the common ancestor), same idea as the bookmarks.
+  // Notes stay as lifted state + props on purpose (compare with bookmarks for Demo 8 Task 2).
   const [notes, setNotes] = useState<Note[]>([]);
 
-  function handleToggleBookmark(evidenceId: string) {
-    const next = toggleId(bookmarkedIds, evidenceId);
-
-    // Immutability check (development only): the result must be a NEW array.
-    if (import.meta.env.DEV && next === bookmarkedIds) {
-      console.error("toggleId returned the same array: bookmarks were mutated!");
-    }
-
-    setBookmarkedIds(next); // tells React: draw again, all pages get the new list
-    setBookmarks(next); // keeps state.ts in sync, so the saving code sees the new list
-    saveBookmarksToStorage(); // saves to localStorage (same as before)
-  }
-
-  // NEW: callback passed down to the evidence cards. It builds a new note and adds it.
+  // Callback passed down to the evidence cards. It builds a new note and adds it.
   // [...old, newNote] makes a NEW array (immutable update), we never use .push().
   function handleAddNote(evidenceId: string, text: string) {
     const newNote: Note = { id: Date.now().toString(), evidenceId, text };
@@ -82,41 +65,27 @@ export default function App() {
     <>
       <Header currentView={viewFromPath(location.pathname)} onViewChange={handleViewChange} />
       <main id="app" className="app-main">
-        {/* The router picks the first route whose path fits the address. */}
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <DashboardPage onViewChange={handleViewChange} bookmarkedIds={bookmarkedIds} />
-            }
-          />
-          <Route
-            path="/evidence"
-            element={
-              <EvidenceCatalogue
-                bookmarkedIds={bookmarkedIds}
-                onToggleBookmark={handleToggleBookmark}
-                onAddNote={handleAddNote}
-              />
-            }
-          />
-          {/* Parent route: PeoplePage is the frame, children go into its <Outlet />. */}
-          <Route path="/team" element={<PeoplePage />}>
-            {/* "/team" alone redirects to the people tab. replace = no extra Back-button entry. */}
-            <Route index element={<Navigate to="/team/people" replace />} />
-            <Route path="people" element={<PeopleTab />} />
-            <Route path="locations" element={<LocationsTab />} />
-            {/* :personId is a variable part: one route handles every person. */}
-            <Route path="people/:personId" element={<PersonDetail />} />
-          </Route>
-          <Route path="/timeline" element={<TimelinePage />} />
-          <Route
-            path="/workspace"
-            element={<WorkspacePage bookmarkedIds={bookmarkedIds} notes={notes} />}
-          />
-          {/* "*" matches everything that no route above matched. */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        {/* NEW: every page inside the Provider can read the bookmarks with useBookmarks(). */}
+        <BookmarkProvider>
+          {/* The router picks the first route whose path fits the address. */}
+          <Routes>
+            <Route path="/" element={<DashboardPage onViewChange={handleViewChange} />} />
+            <Route path="/evidence" element={<EvidenceCatalogue onAddNote={handleAddNote} />} />
+            {/* Parent route: PeoplePage is the frame, children go into its <Outlet />. */}
+            <Route path="/team" element={<PeoplePage />}>
+              {/* "/team" alone redirects to the people tab. replace = no extra Back-button entry. */}
+              <Route index element={<Navigate to="/team/people" replace />} />
+              <Route path="people" element={<PeopleTab />} />
+              <Route path="locations" element={<LocationsTab />} />
+              {/* :personId is a variable part: one route handles every person. */}
+              <Route path="people/:personId" element={<PersonDetail />} />
+            </Route>
+            <Route path="/timeline" element={<TimelinePage />} />
+            <Route path="/workspace" element={<WorkspacePage notes={notes} />} />
+            {/* "*" matches everything that no route above matched. */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BookmarkProvider>
       </main>
     </>
   );

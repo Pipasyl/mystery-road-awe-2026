@@ -1,15 +1,17 @@
+import { useBookmarks } from "../components/BookmarkContext"; // NEW
 import ViewSection from "../components/ViewSection";
 import { getAllEvidence } from "../state";
 import { HypothesisForm } from "./HypothesisForm";
-import type { Note } from "./Note"; // NEW
+import type { Note } from "./Note";
 
-// The bookmark list and the notes list come from App (lifted state).
+// CHANGED: bookmarkedIds is no longer a prop, it comes from Context. Notes are still a prop.
 type WorkspacePageProps = {
-  bookmarkedIds: string[];
-  notes: Note[]; // NEW
+  notes: Note[];
 };
 
-export function WorkspacePage({ bookmarkedIds, notes }: WorkspacePageProps) {
+export function WorkspacePage({ notes }: WorkspacePageProps) {
+  const { bookmarkedIds } = useBookmarks(); // NEW: read the bookmark list from Context
+
   // Bookmarked items = full evidence list filtered by the bookmark ids
   const bookmarkedEvidence = getAllEvidence().filter((ev) => bookmarkedIds.includes(ev.id));
 
@@ -34,7 +36,7 @@ export function WorkspacePage({ bookmarkedIds, notes }: WorkspacePageProps) {
         <div className="workspace-col">
           <h3>Personal Notes</h3>
           <p className="hint-text">Notes are added with the form on each evidence card.</p>
-          {/* NEW: the notes list is drawn straight from the `notes` prop */}
+          {/* The notes list is drawn straight from the `notes` prop */}
           <div className="notes-list">
             {notes.length === 0 ? (
               <p>No notes yet.</p>

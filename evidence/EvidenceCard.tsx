@@ -1,20 +1,24 @@
-import { useState } from "react"; // NEW: for the text typed in the note box
+import { useState } from "react";
+import { useBookmarks } from "../components/BookmarkContext"; // NEW
 import type { Evidence } from "../types";
 import { formatDate, getStatusBadgeClass, getRelevanceBadgeClass } from "../utils";
 
 // Props = the inputs this component receives, like function arguments.
+// CHANGED: isBookmarked and onToggleBookmark are gone, the card reads them from Context.
 type EvidenceCardProps = {
   ev: Evidence;
-  isBookmarked: boolean;
-  onToggleBookmark: (id: string) => void;
-  onAddNote: (evidenceId: string, text: string) => void; // NEW: callback from App
+  onAddNote: (evidenceId: string, text: string) => void;
 };
 
-export function EvidenceCard({ ev, isBookmarked, onToggleBookmark, onAddNote }: EvidenceCardProps) {
-  // NEW: local state. The text being typed is only needed by THIS card, so it stays here.
+export function EvidenceCard({ ev, onAddNote }: EvidenceCardProps) {
+  // NEW: read the bookmark list and the toggle function straight from Context.
+  const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const isBookmarked = bookmarkedIds.includes(ev.id);
+
+  // Local state: the text being typed is only needed by THIS card.
   const [noteText, setNoteText] = useState("");
 
-  // NEW: runs when the form is submitted (button click or Enter key).
+  // Runs when the form is submitted (button click or Enter key).
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault(); // stops the browser from reloading the page
     const text = noteText.trim();
@@ -27,7 +31,7 @@ export function EvidenceCard({ ev, isBookmarked, onToggleBookmark, onAddNote }: 
     <div className="evidence-card">
       <button
         type="button"
-        onClick={() => onToggleBookmark(ev.id)}
+        onClick={() => toggleBookmark(ev.id)}
         className={"bookmark-btn " + (isBookmarked ? "active" : "")}
         aria-label={"Toggle bookmark for " + ev.title}
       >
@@ -48,7 +52,7 @@ export function EvidenceCard({ ev, isBookmarked, onToggleBookmark, onAddNote }: 
           </span>
         ))}
       </div>
-      {/* NEW: note form. The input is controlled: its value always comes from noteText. */}
+      {/* Note form. The input is controlled: its value always comes from noteText. */}
       <form onSubmit={handleSubmit}>
         <input
           type="text"

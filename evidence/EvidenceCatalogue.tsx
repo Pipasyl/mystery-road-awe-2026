@@ -1,29 +1,23 @@
-import { useReducer } from "react"; // CHANGED: useReducer instead of useState
+import { useReducer } from "react";
 import ViewSection from "../components/ViewSection";
 import { getAllEvidence, getAllLocations, getAllPeople } from "../state";
 import { evidenceMentionsPerson } from "../utils";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar } from "./FilterToolbar";
-import { filterReducer, initialFilterState } from "./filterReducer"; // NEW
+import { filterReducer, initialFilterState } from "./filterReducer";
 
-// The bookmark list and the two callbacks come from App (lifted state).
+// CHANGED: only the note callback is left. The bookmarks now come through Context.
 interface EvidenceCatalogueProps {
-  bookmarkedIds: string[];
-  onToggleBookmark: (evidenceId: string) => void;
   onAddNote: (evidenceId: string, text: string) => void;
 }
 
-export function EvidenceCatalogue({
-  bookmarkedIds,
-  onToggleBookmark,
-  onAddNote,
-}: EvidenceCatalogueProps) {
+export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
   // Read the data from the state.ts getters (same ones the old views used)
   const evidence = getAllEvidence();
   const people = getAllPeople();
   const locations = getAllLocations();
 
-  // CHANGED: ONE useReducer for all 7 filter/sort values.
+  // ONE useReducer for all 7 filter/sort values.
   // filters = the current state object, dispatch = sends an action to filterReducer.
   const [filters, dispatch] = useReducer(filterReducer, initialFilterState);
 
@@ -68,12 +62,7 @@ export function EvidenceCatalogue({
         filters={filters}
         dispatch={dispatch}
       />
-      <EvidenceGrid
-        items={visibleEvidence}
-        bookmarkedIds={bookmarkedIds}
-        onToggleBookmark={onToggleBookmark}
-        onAddNote={onAddNote}
-      />
+      <EvidenceGrid items={visibleEvidence} onAddNote={onAddNote} />
     </ViewSection>
   );
 }
