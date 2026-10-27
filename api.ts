@@ -22,28 +22,14 @@ import {
   setEvidenceViewLoading,
   getNotesStore,
   setNotesStore,
-  decrementLoadingSteps,
   STORAGE_KEY_BOOKMARKS,
   STORAGE_KEY_NOTES,
 } from "./state";
 import type { CaseData, CaseLocation, Evidence, Person, TimelineEvent } from "./types";
 
-// --- loading overlay --------------------------------------------------------
-
-export function showLoadingOverlay(msg: string) {
-  const overlay = document.getElementById("loadingOverlay"); // never reassigned -> const
-  const text = document.getElementById("loadingText");
-  if (text) text.textContent = msg;
-  if (overlay) overlay.classList.remove("hidden");
-}
-
-export function hideLoadingStep() {
-  const remaining = decrementLoadingSteps(); // never reassigned -> const
-  if (remaining <= 0) {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.classList.add("hidden");
-  }
-}
+// CHANGED (Demo 10): the loading overlay code (getElementById + classList) was removed.
+// It edited the page by hand, behind React's back. The loading message is now drawn
+// by React itself in react-main.tsx.
 
 // --- fetching case data ------------------------------------------------------
 // Left exactly as a deeply-nested .then() chain on purpose. Demo 9 asks
@@ -69,7 +55,6 @@ export async function loadCorePeopleAndLocations(onComplete?: () => void) {
   const locationsJson = (await locationsRes.json()) as CaseLocation[];
   setAllLocations(locationsJson);
 
-  hideLoadingStep();
   if (onComplete) onComplete();
 }
 
@@ -96,7 +81,8 @@ export function loadEvidenceData(onComplete?: () => void) {
 }
 
 // Demo 9: second conversion — .then()/.catch()/.finally() rewritten as
-// async/await with try/catch/finally, same error handling preserved.
+// async/await with try/catch, same error handling preserved.
+// CHANGED (Demo 10): the finally block only hid the overlay, so it was removed.
 export async function loadTimelineData(onComplete?: () => void) {
   try {
     const res = await fetch("data/timeline.json");
@@ -105,8 +91,6 @@ export async function loadTimelineData(onComplete?: () => void) {
     if (onComplete) onComplete();
   } catch (err) {
     console.log("timeline load error", err);
-  } finally {
-    hideLoadingStep();
   }
 }
 
