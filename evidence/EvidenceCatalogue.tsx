@@ -4,20 +4,24 @@ import { getAllEvidence, getAllLocations, getAllPeople } from "../state";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar, type SortOrder } from "./FilterToolbar";
 
-// NEW: the bookmark list and the toggle function now come from App (lifted state).
+// The bookmark list and the two callbacks come from App (lifted state).
 interface EvidenceCatalogueProps {
   bookmarkedIds: string[];
   onToggleBookmark: (evidenceId: string) => void;
+  onAddNote: (evidenceId: string, text: string) => void; // NEW
 }
 
-export function EvidenceCatalogue({ bookmarkedIds, onToggleBookmark }: EvidenceCatalogueProps) {
+export function EvidenceCatalogue({
+  bookmarkedIds,
+  onToggleBookmark,
+  onAddNote,
+}: EvidenceCatalogueProps) {
   // Read the data from the state.ts getters (same ones the old views used)
   const evidence = getAllEvidence();
   const people = getAllPeople();
   const locations = getAllLocations();
 
   // React state that only THIS page needs: the search text and the sort order.
-  // They stay here because nobody else reads them.
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("date-desc");
 
@@ -60,6 +64,7 @@ export function EvidenceCatalogue({ bookmarkedIds, onToggleBookmark }: EvidenceC
         items={visibleEvidence}
         bookmarkedIds={bookmarkedIds}
         onToggleBookmark={onToggleBookmark}
+        onAddNote={onAddNote}
       />
     </ViewSection>
   );

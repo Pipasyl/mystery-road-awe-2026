@@ -1,4 +1,4 @@
-import { useState } from "react"; // NEW: for the bookmark state
+import { useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router";
 import DashboardPage from "./dashboard/DashboardPage";
 import Header from "./shell/Header";
@@ -9,10 +9,11 @@ import LocationsTab from "./people-locations/LocationsTab";
 import PersonDetail from "./people-locations/PersonDetail";
 import TimelinePage from "./timeline/TimelinePage";
 import { EvidenceCatalogue } from "./evidence/EvidenceCatalogue";
-import { toggleId } from "./evidence/toggleId"; // NEW: moved here from EvidenceCatalogue
+import { toggleId } from "./evidence/toggleId";
 import { WorkspacePage } from "./workspace/WorkspacePage";
-import { saveBookmarksToStorage } from "./api"; // NEW: moved here from EvidenceCatalogue
-import { getBookmarks, setBookmarks } from "./state"; // NEW: moved here from EvidenceCatalogue
+import type { Note } from "./workspace/Note"; // NEW: the type of one note
+import { saveBookmarksToStorage } from "./api";
+import { getBookmarks, setBookmarks } from "./state";
 // The 5 views of the app (still used by Header and DashboardPage).
 export type View = "dashboard" | "evidence" | "people" | "timeline" | "workspace";
 
@@ -47,11 +48,13 @@ export default function App() {
   const navigate = useNavigate(); // function: changes the address
   const location = useLocation(); // object: knows the current address
 
-  // NEW: LIFTED STATE. The ONE place where the bookmark list lives.
-  // App is the lowest component that contains Dashboard, Evidence and Workspace.
+  // LIFTED STATE: the ONE place where the bookmark list lives.
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(getBookmarks());
 
-  // NEW: the only function that changes the bookmarks. It is passed down to Evidence.
+  // NEW: LIFTED STATE for notes. The card form adds notes, the Workspace shows them,
+  // so the state lives in App (the common ancestor), same idea as the bookmarks.
+  const [notes, setNotes] = useState<Note[]>([]);
+
   function handleToggleBookmark(evidenceId: string) {
     const next = toggleId(bookmarkedIds, evidenceId);
 
@@ -63,6 +66,13 @@ export default function App() {
     setBookmarkedIds(next); // tells React: draw again, all pages get the new list
     setBookmarks(next); // keeps state.ts in sync, so the saving code sees the new list
     saveBookmarksToStorage(); // saves to localStorage (same as before)
+  }
+
+  // NEW: callback passed down to the evidence cards. It builds a new note and adds it.
+  // [...old, newNote] makes a NEW array (immutable update), we never use .push().
+  function handleAddNote(evidenceId: string, text: string) {
+    const newNote: Note = { id: Date.now().toString(), evidenceId, text };
+    setNotes((old) => [...old, newNote]);
   }
 
   // Called by Header and DashboardPage with a view word: we turn it into a navigation.
@@ -86,6 +96,7 @@ export default function App() {
               <EvidenceCatalogue
                 bookmarkedIds={bookmarkedIds}
                 onToggleBookmark={handleToggleBookmark}
+                onAddNote={handleAddNote}
               />
             }
           />
@@ -99,7 +110,10 @@ export default function App() {
             <Route path="people/:personId" element={<PersonDetail />} />
           </Route>
           <Route path="/timeline" element={<TimelinePage />} />
-          <Route path="/workspace" element={<WorkspacePage bookmarkedIds={bookmarkedIds} />} />
+          <Route
+            path="/workspace"
+            element={<WorkspacePage bookmarkedIds={bookmarkedIds} notes={notes} />}
+          />
           {/* "*" matches everything that no route above matched. */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

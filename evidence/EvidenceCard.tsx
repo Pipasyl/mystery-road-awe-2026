@@ -1,15 +1,28 @@
+import { useState } from "react"; // NEW: for the text typed in the note box
 import type { Evidence } from "../types";
 import { formatDate, getStatusBadgeClass, getRelevanceBadgeClass } from "../utils";
 
 // Props = the inputs this component receives, like function arguments.
-// This card needs 1 evidence item and 1 true/false saying if it's bookmarked.
 type EvidenceCardProps = {
   ev: Evidence;
   isBookmarked: boolean;
   onToggleBookmark: (id: string) => void;
+  onAddNote: (evidenceId: string, text: string) => void; // NEW: callback from App
 };
 
-export function EvidenceCard({ ev, isBookmarked, onToggleBookmark }: EvidenceCardProps) {
+export function EvidenceCard({ ev, isBookmarked, onToggleBookmark, onAddNote }: EvidenceCardProps) {
+  // NEW: local state. The text being typed is only needed by THIS card, so it stays here.
+  const [noteText, setNoteText] = useState("");
+
+  // NEW: runs when the form is submitted (button click or Enter key).
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault(); // stops the browser from reloading the page
+    const text = noteText.trim();
+    if (text === "") return; // ignore empty notes
+    onAddNote(ev.id, text); // announce to App: "add this note to this evidence"
+    setNoteText(""); // clear the box
+  }
+
   return (
     <div className="evidence-card">
       <button
@@ -35,6 +48,17 @@ export function EvidenceCard({ ev, isBookmarked, onToggleBookmark }: EvidenceCar
           </span>
         ))}
       </div>
+      {/* NEW: note form. The input is controlled: its value always comes from noteText. */}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="Add a private note..."
+          aria-label={"Note for " + ev.title}
+        />
+        <button type="submit">Add note</button>
+      </form>
     </div>
   );
 }
