@@ -1,10 +1,10 @@
 import ViewSection from "../components/ViewSection";
-import { getAllEvidence, getBookmarks } from "../state";
+import { getAllEvidence } from "../state";
 import { HypothesisForm } from "./HypothesisForm";
 
-export function WorkspacePage() {
+// NEW: the bookmark list comes from App (lifted state)
+export function WorkspacePage({ bookmarkedIds }: { bookmarkedIds: string[] }) {
   // Bookmarked items = full evidence list filtered by the bookmark ids
-  const bookmarkedIds = getBookmarks();
   const bookmarkedEvidence = getAllEvidence().filter((ev) => bookmarkedIds.includes(ev.id));
 
   return (

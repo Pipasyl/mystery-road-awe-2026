@@ -1,47 +1,30 @@
 import { useState } from "react";
-import { saveBookmarksToStorage } from "../api";
 import ViewSection from "../components/ViewSection";
-import {
-  getAllEvidence,
-  getAllLocations,
-  getAllPeople,
-  getBookmarks,
-  setBookmarks,
-} from "../state";
+import { getAllEvidence, getAllLocations, getAllPeople } from "../state";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar, type SortOrder } from "./FilterToolbar";
-import { toggleId } from "./toggleId";
 
-export function EvidenceCatalogue() {
+// NEW: the bookmark list and the toggle function now come from App (lifted state).
+interface EvidenceCatalogueProps {
+  bookmarkedIds: string[];
+  onToggleBookmark: (evidenceId: string) => void;
+}
+
+export function EvidenceCatalogue({ bookmarkedIds, onToggleBookmark }: EvidenceCatalogueProps) {
   // Read the data from the state.ts getters (same ones the old views used)
   const evidence = getAllEvidence();
   const people = getAllPeople();
   const locations = getAllLocations();
 
-  // React state: the list of bookmarked ids. It starts from the stored list.
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(getBookmarks());
-
-  // React state: the text typed in the search box, and the chosen sort order.
+  // React state that only THIS page needs: the search text and the sort order.
+  // They stay here because nobody else reads them.
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("date-desc");
-
-  function handleToggleBookmark(evidenceId: string) {
-    const next = toggleId(bookmarkedIds, evidenceId);
-
-    // Immutability check (development only): the result must be a different array
-    // than the old one. If it is the same reference, React would not redraw.
-    if (import.meta.env.DEV && next === bookmarkedIds) {
-      console.error("toggleId returned the same array: bookmarks were mutated!");
-    }
-
-    setBookmarkedIds(next); // tells React: draw again with this list
-    setBookmarks(next); // keeps state.ts in sync, so the Dashboard sees it too
-    saveBookmarksToStorage(); // same save as the old code (localStorage)
-  }
 
   // DERIVED VALUE (not useState): the visible list is recalculated from
   // evidence + searchTerm + sortOrder on every render, so it can never go out of sync.
   // Step 1: filter by the search text.
+  // .filter() returns a NEW array, the full list in `evidence` is never touched.
   const term = searchTerm.trim().toLowerCase();
   const filtered = evidence.filter(
     (ev) =>
@@ -76,7 +59,7 @@ export function EvidenceCatalogue() {
       <EvidenceGrid
         items={visibleEvidence}
         bookmarkedIds={bookmarkedIds}
-        onToggleBookmark={handleToggleBookmark}
+        onToggleBookmark={onToggleBookmark}
       />
     </ViewSection>
   );

@@ -3,17 +3,22 @@ import { Badge, Button, StatCard } from "../components/UI";
 import type { CaseData } from "../types";
 import type { View } from "../App";
 import { formatDate, getStatusBadgeClass } from "../utils";
+// CHANGED: getBookmarks is no longer imported, the list now comes from App as a prop
 import {
   getAllEvidence,
   getCaseData,
   getAllPeople,
   getAllLocations,
-  getBookmarks,
   getAllTimeline,
 } from "../state";
 
 interface ViewChangeProps {
   onViewChange: (view: View) => void;
+}
+
+// NEW: DashboardPage needs the same props as before PLUS the bookmark list from App
+interface DashboardPageProps extends ViewChangeProps {
+  bookmarkedIds: string[];
 }
 
 function IntroCard({ onViewChange }: ViewChangeProps) {
@@ -86,7 +91,8 @@ function ReviewProgress({ percentage }: { percentage: number }) {
   );
 }
 
-export default function DashboardPage({ onViewChange }: ViewChangeProps) {
+// CHANGED: bookmarkedIds is now a prop (a value App hands to this component)
+export default function DashboardPage({ onViewChange, bookmarkedIds }: DashboardPageProps) {
   const allEvidence = getAllEvidence();
   const caseData = getCaseData();
 
@@ -108,8 +114,8 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
         <StatCard value={allEvidence.length} label="Evidence items" />
         <StatCard value={getAllPeople().length} label="People" />
         <StatCard value={getAllLocations().length} label="Locations" />
-        {/* DERIVED: count is read from the bookmark list on every render, not stored separately */}
-        <StatCard value={getBookmarks().length} label="Bookmarked" />
+        {/* DERIVED: count comes from the bookmark list owned by App, not stored here */}
+        <StatCard value={bookmarkedIds.length} label="Bookmarked" />
         <StatCard value={reviewedCount} label="Reviewed" />
       </div>
       <ReviewProgress percentage={progressPct} />
