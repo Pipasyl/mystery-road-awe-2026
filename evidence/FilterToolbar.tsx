@@ -1,52 +1,47 @@
+import type { Dispatch } from "react";
 import type { CaseLocation, Person } from "../types";
+import type { FilterAction, FilterState, SortOrder } from "./filterReducer";
 
-// The toolbar needs the option lists for the three dropdowns that
-// are filled from data (types, people, locations).
-// The status/relevance/sort options are fixed, so they are written inline.
-// searchTerm + onSearchChange: the text currently in the search box,
-// and the function to call when the user types.
-export type SortOrder = "date-desc" | "date-asc" | "title-asc" | "title-desc";
+// SortOrder now lives in filterReducer.ts; re-exported here so old imports keep working.
+export type { SortOrder };
 
+// The toolbar needs the option lists for the three dropdowns that are filled from data.
+// filters = the current values to show in the boxes.
+// dispatch = the function to send an action to the reducer in EvidenceCatalogue.
 type FilterToolbarProps = {
   types: string[];
   people: Person[];
   locations: CaseLocation[];
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  sortOrder: SortOrder;
-  onSortChange: (value: SortOrder) => void;
+  filters: FilterState;
+  dispatch: Dispatch<FilterAction>;
 };
 
-export function FilterToolbar({
-  types,
-  people,
-  locations,
-  searchTerm,
-  onSearchChange,
-  sortOrder,
-  onSortChange,
-}: FilterToolbarProps) {
+export function FilterToolbar({ types, people, locations, filters, dispatch }: FilterToolbarProps) {
   return (
     <div className="toolbar" id="evidenceToolbar">
       <div className="toolbar-row">
         <label htmlFor="evidenceSearch" className="visually-hidden">
           Search evidence
         </label>
-        {/* value = what the box shows (comes from React state).
-            onChange = runs on every keystroke, e.target.value is the full text in the box. */}
+        {/* value = what the box shows (from the reducer state).
+            onChange = sends a SET_FILTER action on every keystroke. */}
         <input
           type="text"
           id="evidenceSearch"
           placeholder="Search evidence by title, summary, or tag…"
           autoComplete="off"
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={filters.search}
+          onChange={(e) => dispatch({ type: "SET_FILTER", field: "search", value: e.target.value })}
         />
 
         <label htmlFor="filterType" className="visually-hidden">
           Filter by type
         </label>
-        <select id="filterType">
+        <select
+          id="filterType"
+          value={filters.type}
+          onChange={(e) => dispatch({ type: "SET_FILTER", field: "type", value: e.target.value })}
+        >
           <option value="">All types</option>
           {types.map((t) => (
             <option key={t} value={t}>
@@ -58,7 +53,11 @@ export function FilterToolbar({
         <label htmlFor="filterPerson" className="visually-hidden">
           Filter by person
         </label>
-        <select id="filterPerson">
+        <select
+          id="filterPerson"
+          value={filters.person}
+          onChange={(e) => dispatch({ type: "SET_FILTER", field: "person", value: e.target.value })}
+        >
           <option value="">All people</option>
           {people.map((p) => (
             <option key={p.id} value={p.id}>
@@ -70,7 +69,13 @@ export function FilterToolbar({
         <label htmlFor="filterLocation" className="visually-hidden">
           Filter by location
         </label>
-        <select id="filterLocation">
+        <select
+          id="filterLocation"
+          value={filters.location}
+          onChange={(e) =>
+            dispatch({ type: "SET_FILTER", field: "location", value: e.target.value })
+          }
+        >
           <option value="">All locations</option>
           {locations.map((l) => (
             <option key={l.id} value={l.id}>
@@ -84,7 +89,11 @@ export function FilterToolbar({
         <label htmlFor="filterStatus" className="visually-hidden">
           Filter by status
         </label>
-        <select id="filterStatus">
+        <select
+          id="filterStatus"
+          value={filters.status}
+          onChange={(e) => dispatch({ type: "SET_FILTER", field: "status", value: e.target.value })}
+        >
           <option value="">All statuses</option>
           <option value="unreviewed">Unreviewed</option>
           <option value="reviewed">Reviewed</option>
@@ -94,7 +103,13 @@ export function FilterToolbar({
         <label htmlFor="filterRelevance" className="visually-hidden">
           Filter by relevance
         </label>
-        <select id="filterRelevance">
+        <select
+          id="filterRelevance"
+          value={filters.relevance}
+          onChange={(e) =>
+            dispatch({ type: "SET_FILTER", field: "relevance", value: e.target.value })
+          }
+        >
           <option value="">All relevance</option>
           <option value="unknown">Unknown</option>
           <option value="relevant">Relevant</option>
@@ -106,8 +121,8 @@ export function FilterToolbar({
         </label>
         <select
           id="sortEvidence"
-          value={sortOrder}
-          onChange={(e) => onSortChange(e.target.value as SortOrder)}
+          value={filters.sort}
+          onChange={(e) => dispatch({ type: "SET_SORT", sort: e.target.value as SortOrder })}
         >
           <option value="date-desc">Newest first</option>
           <option value="date-asc">Oldest first</option>
@@ -115,7 +130,13 @@ export function FilterToolbar({
           <option value="title-desc">Title (Z–A)</option>
         </select>
 
-        <button type="button" id="clearFiltersBtn" className="btn btn-secondary">
+        {/* One click = one action = all 7 values reset */}
+        <button
+          type="button"
+          id="clearFiltersBtn"
+          className="btn btn-secondary"
+          onClick={() => dispatch({ type: "CLEAR_FILTERS" })}
+        >
           Clear filters
         </button>
       </div>
