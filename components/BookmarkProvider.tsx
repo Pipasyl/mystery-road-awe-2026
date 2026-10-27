@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { saveBookmarksToStorage } from "../api";
 import { toggleId } from "../evidence/toggleId";
-import { getBookmarks, setBookmarks } from "../state";
+import { getBookmarks } from "../state"; // CHANGED: setBookmarks is not needed any more
 import { BookmarkContext } from "./BookmarkContext";
 
-// The Provider OWNS the bookmark state (moved here from App).
-// Everything inside {children} can read it with useBookmarks().
+// The Provider OWNS the bookmark state.
+// getBookmarks() is only used ONCE here, to get the starting list loaded from localStorage.
 export function BookmarkProvider({ children }: { children: ReactNode }) {
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(getBookmarks());
 
@@ -17,9 +17,8 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
       console.error("toggleId returned the same array: bookmarks were mutated!");
     }
 
-    setBookmarkedIds(next); // tells React: draw again, every consumer gets the new list
-    setBookmarks(next); // keeps state.ts in sync, so the saving code sees the new list
-    saveBookmarksToStorage(); // saves to localStorage (same as before)
+    setBookmarkedIds(next); // React state is the ONE truth
+    saveBookmarksToStorage(next); // CHANGED: save the new list directly, no copy in state.ts
   }
 
   return (

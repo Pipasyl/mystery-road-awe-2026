@@ -110,8 +110,12 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
         <StatCard value={allEvidence.length} label="Evidence items" />
         <StatCard value={getAllPeople().length} label="People" />
         <StatCard value={getAllLocations().length} label="Locations" />
-        {/* DERIVED: count comes from the bookmark list in Context, not stored here */}
-        <StatCard value={bookmarkedIds.length} label="Bookmarked" />
+        {/* DERIVED: counts the bookmarked evidence items that really exist, exactly the
+            same rule the Workspace uses, so both pages always show the same number */}
+        <StatCard
+          value={allEvidence.filter((ev) => bookmarkedIds.includes(ev.id)).length}
+          label="Bookmarked"
+        />
         <StatCard value={reviewedCount} label="Reviewed" />
       </div>
       <ReviewProgress percentage={progressPct} />

@@ -121,8 +121,10 @@ export function applyStoredBookmarkFlags() {
 
 // --- localStorage persistence -------------------------------------------
 
-export function saveBookmarksToStorage() {
-  localStorage.setItem(STORAGE_KEY_BOOKMARKS, JSON.stringify(getBookmarks()));
+// The list to save is now passed in. The default keeps the old vanilla code working,
+// because it still calls saveBookmarksToStorage() with no argument.
+export function saveBookmarksToStorage(list: string[] = getBookmarks()) {
+  localStorage.setItem(STORAGE_KEY_BOOKMARKS, JSON.stringify(list));
 }
 
 export function loadBookmarksFromStorage() {
