@@ -108,6 +108,7 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
         <StatCard value={allEvidence.length} label="Evidence items" />
         <StatCard value={getAllPeople().length} label="People" />
         <StatCard value={getAllLocations().length} label="Locations" />
+        {/* DERIVED: count is read from the bookmark list on every render, not stored separately */}
         <StatCard value={getBookmarks().length} label="Bookmarked" />
         <StatCard value={reviewedCount} label="Reviewed" />
       </div>

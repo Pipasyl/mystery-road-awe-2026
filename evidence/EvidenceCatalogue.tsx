@@ -39,8 +39,9 @@ export function EvidenceCatalogue() {
     saveBookmarksToStorage(); // same save as the old code (localStorage)
   }
 
+  // DERIVED VALUE (not useState): the visible list is recalculated from
+  // evidence + searchTerm + sortOrder on every render, so it can never go out of sync.
   // Step 1: filter by the search text.
-  // .filter() returns a NEW array, the full list in `evidence` is never touched.
   const term = searchTerm.trim().toLowerCase();
   const filtered = evidence.filter(
     (ev) =>
