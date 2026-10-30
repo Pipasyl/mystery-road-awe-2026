@@ -60,3 +60,13 @@ components/         ViewSection, EmptyState, UI (Badge, Button, StatCard),
   the detail page.
 - `timeline/TimelineFilters.tsx`: filter dropdowns, visually complete but not
   wired (no state, Exercise 5).
+
+## Render vs. effect (Exercise 6, Demo 1)
+
+- **Render** (the body of a component function): only works out what to show from props and state.
+  Same input gives the same output. It never changes anything outside the function.
+  React may call it more than once (state changes, Strict Mode), so it must be safe to repeat.
+- **Effect** (`useEffect`): everything that touches the outside world — storage, timers,
+  network, the page title. It runs after the screen is drawn.
+- **Derived values** (like the filtered evidence list) are calculated in render, not in an effect,
+  because they only read data and build something new.

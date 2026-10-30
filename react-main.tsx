@@ -1,3 +1,4 @@
+import { StrictMode } from "react"; // TEMPORARY (Demo 1): wrapper that double-calls components in dev
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { HashRouter } from "react-router";
@@ -27,11 +28,14 @@ let pending = 3;
 function onLoaded() {
   pending--;
   // HashRouter must wrap the whole app so every component can read the URL.
+  // StrictMode (TEMPORARY, Demo 1) wraps everything so React double-calls each component.
   if (pending === 0)
     root.render(
-      <HashRouter>
-        <App />
-      </HashRouter>,
+      <StrictMode>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </StrictMode>,
     );
 }
 
