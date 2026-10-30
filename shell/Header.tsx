@@ -1,7 +1,7 @@
 // "import type" loads only the type (it is erased when the app runs).
 // View is still defined in App.tsx, so we climb one folder up with "../".
 import type { View } from "../App";
-
+import EffectLab from "../components/EffectLab"; // TEMPORARY (Demo 2 – Task 1)
 interface HeaderProps {
   currentView: View;
   onViewChange: (view: View) => void;
@@ -16,6 +16,7 @@ export default function Header({ currentView, onViewChange }: HeaderProps) {
 
   return (
     <header className="app-header">
+      <EffectLab /> {/* TEMPORARY (Demo 2 – Task 1) */}
       <div className="header-inner">
         <div className="brand">
           <img src="assets/logo/logo.svg" alt="Project ReMotion logo" className="brand-logo" />
