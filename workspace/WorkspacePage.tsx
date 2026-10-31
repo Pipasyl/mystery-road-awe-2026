@@ -1,19 +1,32 @@
-import { useBookmarks } from "../components/BookmarkContext"; // NEW
+import { useEffect, useState } from "react"; // CHANGED: + useEffect, useState
+import { useBookmarks } from "../components/BookmarkContext";
 import ViewSection from "../components/ViewSection";
-import { getAllEvidence } from "../state";
+import type { Evidence } from "../types"; // CHANGED: type instead of state.ts
 import { HypothesisForm } from "./HypothesisForm";
 import type { Note } from "./Note";
+// CHANGED: the import from "../state" is gone.
 
-// CHANGED: bookmarkedIds is no longer a prop, it comes from Context. Notes are still a prop.
 type WorkspacePageProps = {
   notes: Note[];
 };
 
 export function WorkspacePage({ notes }: WorkspacePageProps) {
-  const { bookmarkedIds } = useBookmarks(); // NEW: read the bookmark list from Context
+  const { bookmarkedIds } = useBookmarks();
+
+  // NEW: a box for the evidence, empty until the backend answers.
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
+
+  // NEW: runs once after the first draw ([]). It asks the backend for the evidence.
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/evidence");
+      setEvidence((await res.json()) as Evidence[]); // saving in state = React draws again
+    }
+    void load();
+  }, []);
 
   // Bookmarked items = full evidence list filtered by the bookmark ids
-  const bookmarkedEvidence = getAllEvidence().filter((ev) => bookmarkedIds.includes(ev.id));
+  const bookmarkedEvidence = evidence.filter((ev) => bookmarkedIds.includes(ev.id));
 
   return (
     <ViewSection title="Investigator Workspace">

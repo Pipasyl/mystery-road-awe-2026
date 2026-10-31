@@ -1,10 +1,11 @@
-import { useReducer } from "react";
+import { useEffect, useReducer, useState } from "react"; // CHANGED: + useEffect, useState
 import ViewSection from "../components/ViewSection";
-import { getAllEvidence, getAllLocations, getAllPeople } from "../state";
+import type { CaseLocation, Evidence, Person } from "../types"; // CHANGED: types instead of state.ts
 import { evidenceMentionsPerson } from "../utils";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar } from "./FilterToolbar";
 import { filterReducer, initialFilterState } from "./filterReducer";
+// CHANGED: the import from "../state" is gone.
 
 // CHANGED: only the note callback is left. The bookmarks now come through Context.
 interface EvidenceCatalogueProps {
@@ -12,13 +13,29 @@ interface EvidenceCatalogueProps {
 }
 
 export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
-  // Read the data from the state.ts getters (same ones the old views used)
-  const evidence = getAllEvidence();
-  const people = getAllPeople();
-  const locations = getAllLocations();
+  // NEW: 3 boxes for the data. They start empty because the backend has not answered yet.
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [locations, setLocations] = useState<CaseLocation[]>([]);
+
+  // NEW: runs once after the first draw ([]). Promise.all sends the 3 requests at the
+  // same time and waits until all 3 have answered.
+  useEffect(() => {
+    async function load() {
+      const [e, p, l] = await Promise.all([
+        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
+        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
+        fetch("/api/locations").then((res) => res.json() as Promise<CaseLocation[]>),
+      ]);
+      // Saving into state makes React draw the page again, now with data.
+      setEvidence(e);
+      setPeople(p);
+      setLocations(l);
+    }
+    void load();
+  }, []);
 
   // ONE useReducer for all 7 filter/sort values.
-  // filters = the current state object, dispatch = sends an action to filterReducer.
   const [filters, dispatch] = useReducer(filterReducer, initialFilterState);
 
   // The person dropdown stores an id, so we look up the person object once.
@@ -26,7 +43,6 @@ export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
 
   // DERIVED VALUE (not state): recalculated from evidence + filters on every render.
   // Step 1: keep only the items that match ALL active filters ("" = filter is off).
-  // .filter() returns a NEW array, the full list in `evidence` is never touched.
   const term = filters.search.trim().toLowerCase();
   const filtered = evidence.filter(
     (ev) =>
@@ -42,7 +58,7 @@ export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
       (filters.relevance === "" || ev.relevance === filters.relevance),
   );
 
-  // Step 2: sort. We sort `filtered` (a copy), never the master list.
+  // Step 2: sort. We sort `filtered` (a copy), never the list in state.
   const visibleEvidence = filtered.sort((a, b) => {
     if (filters.sort === "title-asc") return a.title.localeCompare(b.title);
     if (filters.sort === "title-desc") return b.title.localeCompare(a.title);

@@ -1,19 +1,21 @@
+import { useEffect, useState } from "react"; // NEW
 // "../" = go one folder up, because this file now lives in dashboard/
-import { useBookmarks } from "../components/BookmarkContext"; // NEW
+import { useBookmarks } from "../components/BookmarkContext";
 import { Badge, Button, StatCard } from "../components/UI";
-import type { CaseData } from "../types";
+import type { CaseData, CaseLocation, Evidence, Person, TimelineEvent } from "../types"; // CHANGED: more types
 import type { View } from "../App";
 import { formatDate, getStatusBadgeClass } from "../utils";
-import {
-  getAllEvidence,
-  getCaseData,
-  getAllPeople,
-  getAllLocations,
-  getAllTimeline,
-} from "../state";
+// CHANGED: the imports from "../state" are gone. This page no longer reads data from state.ts.
 
 interface ViewChangeProps {
   onViewChange: (view: View) => void;
+}
+
+// NEW: asks the backend for one address and turns the answer into data.
+// <T> = "the kind of data we expect", so TypeScript knows what comes back.
+async function getJson<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  return (await res.json()) as T;
 }
 
 function IntroCard({ onViewChange }: ViewChangeProps) {
@@ -86,11 +88,37 @@ function ReviewProgress({ percentage }: { percentage: number }) {
   );
 }
 
-// CHANGED: bookmarkedIds is no longer a prop, it comes from Context.
 export default function DashboardPage({ onViewChange }: ViewChangeProps) {
-  const { bookmarkedIds } = useBookmarks(); // NEW: read the bookmark list from Context
-  const allEvidence = getAllEvidence();
-  const caseData = getCaseData();
+  const { bookmarkedIds } = useBookmarks();
+
+  // NEW: 5 boxes (state), one for each kind of data. They start empty because
+  // the answers from the backend have not arrived yet.
+  const [caseData, setCaseData] = useState<Partial<CaseData>>({});
+  const [allEvidence, setAllEvidence] = useState<Evidence[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [locations, setLocations] = useState<CaseLocation[]>([]);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+
+  // NEW: runs once after the first draw (the [] at the end). Promise.all sends the
+  // 5 requests at the same time and waits until all 5 have answered.
+  useEffect(() => {
+    async function load() {
+      const [c, e, p, l, t] = await Promise.all([
+        getJson<CaseData>("/api/case"),
+        getJson<Evidence[]>("/api/evidence"),
+        getJson<Person[]>("/api/people"),
+        getJson<CaseLocation[]>("/api/locations"),
+        getJson<TimelineEvent[]>("/api/timeline"),
+      ]);
+      // Saving into state makes React draw the page again, now with data.
+      setCaseData(c);
+      setAllEvidence(e);
+      setPeople(p);
+      setLocations(l);
+      setTimeline(t);
+    }
+    void load();
+  }, []);
 
   const reviewedCount = allEvidence.filter(
     (ev) => (ev.status || "").toLowerCase() === "reviewed",
@@ -99,7 +127,7 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
     allEvidence.length === 0 ? 0 : Math.round((reviewedCount / allEvidence.length) * 100);
 
   const recentEvidence = allEvidence.slice(-5).reverse();
-  const recentTimeline = getAllTimeline().slice(-5).reverse();
+  const recentTimeline = timeline.slice(-5).reverse(); // CHANGED: uses the state box
 
   return (
     <section id="view-dashboard" className="view active">
@@ -108,8 +136,8 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
       <CaseSummaryCard caseData={caseData} />
       <div className="stat-grid">
         <StatCard value={allEvidence.length} label="Evidence items" />
-        <StatCard value={getAllPeople().length} label="People" />
-        <StatCard value={getAllLocations().length} label="Locations" />
+        <StatCard value={people.length} label="People" />
+        <StatCard value={locations.length} label="Locations" />
         {/* DERIVED: counts the bookmarked evidence items that really exist, exactly the
             same rule the Workspace uses, so both pages always show the same number */}
         <StatCard

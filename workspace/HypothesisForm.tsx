@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react"; // CHANGED: + useEffect
 import type { ChangeEvent, FormEvent } from "react";
-import { STORAGE_KEY_HYPOTHESIS, getAllEvidence, getAllPeople } from "../state";
+import { STORAGE_KEY_HYPOTHESIS } from "../state"; // CHANGED: only the fixed storage key stays
+import type { Evidence, Person } from "../types"; // NEW
 
 interface HypothesisDraft {
   suspectId: string;
@@ -13,8 +14,23 @@ interface HypothesisDraft {
 }
 
 export function HypothesisForm() {
-  const people = getAllPeople();
-  const evidence = getAllEvidence();
+  // NEW: 2 boxes for the dropdown data, empty until the backend answers.
+  const [people, setPeople] = useState<Person[]>([]);
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
+
+  // NEW: runs once after the first draw ([]). Promise.all sends both requests at the
+  // same time and waits until both have answered.
+  useEffect(() => {
+    async function load() {
+      const [p, e] = await Promise.all([
+        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
+        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
+      ]);
+      setPeople(p);
+      setEvidence(e);
+    }
+    void load();
+  }, []);
 
   // One state object for all 6 form fields. Every input shows its value from here.
   const [draft, setDraft] = useState<Omit<HypothesisDraft, "savedAt">>({
