@@ -70,3 +70,38 @@ components/         ViewSection, EmptyState, UI (Badge, Button, StatCard),
   network, the page title. It runs after the screen is drawn.
 - **Derived values** (like the filtered evidence list) are calculated in render, not in an effect,
   because they only read data and build something new.
+
+## Data flow: locations, from file to screen
+
+```
+public/data/locations.json          the data, a plain file
+        │  readFile + JSON.parse
+        ▼
+server/index.js                     GET /api/locations (also ?delay, ?error, ?empty)
+        │  http://localhost:3001
+        ▼
+vite.config.ts proxy                "/api/" is forwarded, so the browser sees one origin
+        │  /api/locations
+        ▼
+backendApi.ts  getLocations         fetch + res.ok check, knows the URL, nothing else
+        │  Promise<CaseLocation[]>
+        ▼
+components/useFetch.ts              state { data, status }, effect, AbortController cleanup
+        │  { data: locations, status }
+        ▼
+people-locations/LocationsTab.tsx   UI only: loading, error, empty or the list
+        │  locations
+        ▼
+LocationsList  ->  screen           the 6 location cards
+```
+
+## UX decision: loading, error and empty are three different screens
+
+- **Loading:** one plain line, "Loading locations…". The data is small and local, so a spinner or
+  skeleton would be more code than the wait is worth. The text still says what is loading.
+- **Error:** red, bold, with `role="alert"` so a screen reader announces it. It says what failed
+  and what to do ("Please try again"), and it is never mixed up with an empty list.
+- **Empty:** a neutral grey box, "No locations to show." An empty answer is a valid result, not
+  a failure, so it must not look like an error.
+- **One thing I would do differently:** add a "Try again" button to the error screen. Today the
+  user has to reload the whole page, and the message does not say why it failed.
