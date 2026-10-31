@@ -1,26 +1,27 @@
-import { useEffect, useState } from "react";
-import type { Evidence, Person } from "../types"; // CHANGED: + Evidence
+import EmptyState from "../components/EmptyState";
+import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect + Promise.all
+import type { Evidence, Person } from "../types";
 import PeopleList from "./PeopleList";
 
 // FEATURE component: the content of the /team/people route.
-// It asks the backend for people AND evidence and hands both to the list.
 export default function PeopleTab() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [evidence, setEvidence] = useState<Evidence[]>([]); // NEW: box for the evidence
+  // NEW: the hook is called TWICE, once per address. Each call has its own data and status.
+  const { data: people, status: peopleStatus } = useFetch<Person[]>("/api/people");
+  const { data: evidence, status: evidenceStatus } = useFetch<Evidence[]>("/api/evidence");
 
-  // Runs once after the first draw. Promise.all sends both requests at the same
-  // time and waits until both have answered.
-  useEffect(() => {
-    async function load() {
-      const [p, e] = await Promise.all([
-        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
-        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
-      ]);
-      setPeople(p);
-      setEvidence(e);
-    }
-    void load();
-  }, []);
+  // Specific to THIS page: we need BOTH answers, so we combine the 2 statuses.
+  // Any error = error. Otherwise, any still waiting = loading.
+  if (peopleStatus === "error" || evidenceStatus === "error")
+    return (
+      <p role="alert" style={{ color: "crimson", fontWeight: "bold" }}>
+        ❌ Could not load people. Please try again.
+      </p>
+    );
+  if (peopleStatus === "loading" || evidenceStatus === "loading") return <p>⏳ Loading people…</p>;
+
+  // Both succeeded. `!people` / `!evidence` only calm TypeScript (data starts as null).
+  if (!people || !evidence || people.length === 0)
+    return <EmptyState message="No people to show." />;
 
   return <PeopleList people={people} evidence={evidence} />;
 }
