@@ -1,7 +1,6 @@
 // "import type" loads only the type (it is erased when the app runs).
 // View is still defined in App.tsx, so we climb one folder up with "../".
 import type { View } from "../App";
-import CleanupLab from "../components/CleanupLab";
 interface HeaderProps {
   currentView: View;
   onViewChange: (view: View) => void;
@@ -16,7 +15,6 @@ export default function Header({ currentView, onViewChange }: HeaderProps) {
 
   return (
     <header className="app-header">
-      <CleanupLab />
       <div className="header-inner">
         <div className="brand">
           <img src="assets/logo/logo.svg" alt="Project ReMotion logo" className="brand-logo" />
