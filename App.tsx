@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react"; // CHANGED: useEffect added
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router";
 import DashboardPage from "./dashboard/DashboardPage";
 import Header from "./shell/Header";
 import ViewSection from "./components/ViewSection";
-import { BookmarkProvider } from "./components/BookmarkProvider"; // NEW
+import { BookmarkProvider } from "./components/BookmarkProvider";
 import PeoplePage from "./people-locations/PeoplePage";
 import PeopleTab from "./people-locations/PeopleTab";
 import LocationsTab from "./people-locations/LocationsTab";
@@ -22,6 +22,15 @@ const PATHS: Record<View, string> = {
   people: "/team/people",
   timeline: "/timeline",
   workspace: "/workspace",
+};
+
+// NEW (Demo 2 – Task 2): the text shown in the browser tab for each view.
+const TITLES: Record<View, string> = {
+  dashboard: "Dashboard",
+  evidence: "Evidence",
+  people: "People & Locations",
+  timeline: "Timeline",
+  workspace: "Workspace",
 };
 
 // Reverse direction: address -> view word (so Header can mark the active button).
@@ -46,7 +55,17 @@ export default function App() {
   const navigate = useNavigate(); // function: changes the address
   const location = useLocation(); // object: knows the current address
 
-  // CHANGED: the bookmark state is gone from App, it now lives in <BookmarkProvider>.
+  // CHANGED: calculated once here, used by the effect below and by Header.
+  const currentView = viewFromPath(location.pathname);
+
+  // NEW (Demo 2 – Task 2): EFFECT. The browser tab title is outside React,
+  // so setting it is a side effect and must not happen during render.
+  // Runs after the first render and again only when currentView changes.
+  useEffect(() => {
+    document.title = `${TITLES[currentView]} – Project ReMotion`;
+  }, [currentView]);
+
+  // The bookmark state lives in <BookmarkProvider>, not in App.
 
   // Notes stay as lifted state + props on purpose (compare with bookmarks for Demo 8 Task 2).
   const [notes, setNotes] = useState<Note[]>([]);
@@ -63,9 +82,9 @@ export default function App() {
 
   return (
     <>
-      <Header currentView={viewFromPath(location.pathname)} onViewChange={handleViewChange} />
+      <Header currentView={currentView} onViewChange={handleViewChange} />
       <main id="app" className="app-main">
-        {/* NEW: every page inside the Provider can read the bookmarks with useBookmarks(). */}
+        {/* Every page inside the Provider can read the bookmarks with useBookmarks(). */}
         <BookmarkProvider>
           {/* The router picks the first route whose path fits the address. */}
           <Routes>
