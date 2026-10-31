@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react"; // CHANGED: + useEffect
+import { useState } from "react"; // CHANGED: useEffect is no longer needed
 import type { ChangeEvent, FormEvent } from "react";
-import { STORAGE_KEY_HYPOTHESIS } from "../state"; // CHANGED: only the fixed storage key stays
-import type { Evidence, Person } from "../types"; // NEW
+import { getEvidence, getPeople } from "../backendApi"; // NEW: the API layer
+import { useFetch } from "../components/useFetch"; // NEW: replaces the 2 state boxes + the effect
+import { STORAGE_KEY_HYPOTHESIS } from "../state"; // only the fixed storage key stays
 
 interface HypothesisDraft {
   suspectId: string;
@@ -14,23 +15,11 @@ interface HypothesisDraft {
 }
 
 export function HypothesisForm() {
-  // NEW: 2 boxes for the dropdown data, empty until the backend answers.
-  const [people, setPeople] = useState<Person[]>([]);
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-
-  // NEW: runs once after the first draw ([]). Promise.all sends both requests at the
-  // same time and waits until both have answered.
-  useEffect(() => {
-    async function load() {
-      const [p, e] = await Promise.all([
-        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
-        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
-      ]);
-      setPeople(p);
-      setEvidence(e);
-    }
-    void load();
-  }, []);
+  // CHANGED: 2 hook calls fill the dropdowns. `?? []` = empty until the answer arrives.
+  const { data: peopleRaw } = useFetch(getPeople);
+  const { data: evidenceRaw } = useFetch(getEvidence);
+  const people = peopleRaw ?? [];
+  const evidence = evidenceRaw ?? [];
 
   // One state object for all 6 form fields. Every input shows its value from here.
   const [draft, setDraft] = useState<Omit<HypothesisDraft, "savedAt">>({

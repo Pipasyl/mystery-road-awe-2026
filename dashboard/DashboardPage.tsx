@@ -1,21 +1,14 @@
-import { useEffect, useState } from "react"; // NEW
-// "../" = go one folder up, because this file now lives in dashboard/
+import { getCase, getEvidence, getLocations, getPeople, getTimeline } from "../backendApi"; // NEW: the API layer
 import { useBookmarks } from "../components/BookmarkContext";
+import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect + getJson
 import { Badge, Button, StatCard } from "../components/UI";
-import type { CaseData, CaseLocation, Evidence, Person, TimelineEvent } from "../types"; // CHANGED: more types
+import type { CaseData } from "../types";
 import type { View } from "../App";
 import { formatDate, getStatusBadgeClass } from "../utils";
-// CHANGED: the imports from "../state" are gone. This page no longer reads data from state.ts.
+// CHANGED: the local getJson helper and its fetch are gone. This page only draws now.
 
 interface ViewChangeProps {
   onViewChange: (view: View) => void;
-}
-
-// NEW: asks the backend for one address and turns the answer into data.
-// <T> = "the kind of data we expect", so TypeScript knows what comes back.
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  return (await res.json()) as T;
 }
 
 function IntroCard({ onViewChange }: ViewChangeProps) {
@@ -91,34 +84,19 @@ function ReviewProgress({ percentage }: { percentage: number }) {
 export default function DashboardPage({ onViewChange }: ViewChangeProps) {
   const { bookmarkedIds } = useBookmarks();
 
-  // NEW: 5 boxes (state), one for each kind of data. They start empty because
-  // the answers from the backend have not arrived yet.
-  const [caseData, setCaseData] = useState<Partial<CaseData>>({});
-  const [allEvidence, setAllEvidence] = useState<Evidence[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
-  const [locations, setLocations] = useState<CaseLocation[]>([]);
-  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-
-  // NEW: runs once after the first draw (the [] at the end). Promise.all sends the
-  // 5 requests at the same time and waits until all 5 have answered.
-  useEffect(() => {
-    async function load() {
-      const [c, e, p, l, t] = await Promise.all([
-        getJson<CaseData>("/api/case"),
-        getJson<Evidence[]>("/api/evidence"),
-        getJson<Person[]>("/api/people"),
-        getJson<CaseLocation[]>("/api/locations"),
-        getJson<TimelineEvent[]>("/api/timeline"),
-      ]);
-      // Saving into state makes React draw the page again, now with data.
-      setCaseData(c);
-      setAllEvidence(e);
-      setPeople(p);
-      setLocations(l);
-      setTimeline(t);
-    }
-    void load();
-  }, []);
+  // CHANGED: 5 hook calls replace the 5 state boxes and the effect with Promise.all.
+  // `data` is null until the answer arrives, so `?? ...` keeps the old behaviour:
+  // empty values at first, the real ones after.
+  const { data: caseDataRaw } = useFetch(getCase);
+  const { data: evidenceRaw } = useFetch(getEvidence);
+  const { data: peopleRaw } = useFetch(getPeople);
+  const { data: locationsRaw } = useFetch(getLocations);
+  const { data: timelineRaw } = useFetch(getTimeline);
+  const caseData: Partial<CaseData> = caseDataRaw ?? {};
+  const allEvidence = evidenceRaw ?? [];
+  const people = peopleRaw ?? [];
+  const locations = locationsRaw ?? [];
+  const timeline = timelineRaw ?? [];
 
   const reviewedCount = allEvidence.filter(
     (ev) => (ev.status || "").toLowerCase() === "reviewed",
@@ -127,7 +105,7 @@ export default function DashboardPage({ onViewChange }: ViewChangeProps) {
     allEvidence.length === 0 ? 0 : Math.round((reviewedCount / allEvidence.length) * 100);
 
   const recentEvidence = allEvidence.slice(-5).reverse();
-  const recentTimeline = timeline.slice(-5).reverse(); // CHANGED: uses the state box
+  const recentTimeline = timeline.slice(-5).reverse();
 
   return (
     <section id="view-dashboard" className="view active">

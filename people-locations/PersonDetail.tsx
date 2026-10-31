@@ -1,39 +1,30 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { getEvidence, getPeople } from "../backendApi"; // NEW: the API layer
 import EmptyState from "../components/EmptyState";
-import type { Evidence, Person } from "../types"; // CHANGED: types instead of state.ts
+import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect
 import PersonCard from "./PersonCard";
 import { countEvidenceForPerson } from "./evidenceCount";
 
-// FEATURE component: the content of the /team/people/:personId route.
+// FEATURE component: the content of the /team/people/:personId route. UI only.
 export default function PersonDetail() {
-  // For #/team/people/nova-byte it is { personId: "nova-byte" }.
   const { personId } = useParams<{ personId: string }>();
 
-  // NEW: 2 boxes for the data, plus a flag that says "the answer has arrived".
-  const [people, setPeople] = useState<Person[]>([]);
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  // CHANGED: 2 hook calls replace the 2 state boxes, the `loaded` flag and the effect.
+  const { data: people, status: peopleStatus } = useFetch(getPeople);
+  const { data: evidence, status: evidenceStatus } = useFetch(getEvidence);
 
-  // NEW: runs once after the first draw. It asks the backend for people and evidence.
-  useEffect(() => {
-    async function load() {
-      const [p, e] = await Promise.all([
-        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
-        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
-      ]);
-      setPeople(p);
-      setEvidence(e);
-      setLoaded(true); // now we know the lists are real, not just empty
-    }
-    void load();
-  }, []);
+  // NEW: the hook gives us an error status for free, so this page can show it.
+  if (peopleStatus === "error" || evidenceStatus === "error")
+    return (
+      <p role="alert" style={{ color: "crimson", fontWeight: "bold" }}>
+        ❌ Could not load this person. Please try again.
+      </p>
+    );
 
-  // NEW: while the answer has not arrived, the lists are empty. Without this line the
-  // page would flash "No person found" for a moment. Demo 6 does proper loading screens.
-  if (!loaded) return <p>Loading…</p>;
+  // While the data is null, the answer has not arrived. This replaces the old `loaded` flag,
+  // and also stops a wrong "No person found" from flashing.
+  if (!people || !evidence) return <p>Loading…</p>;
 
-  // .find returns the first person whose id matches, or undefined if none does.
   const person = people.find((p) => p.id === personId);
 
   // Unknown id (e.g. #/team/people/banana) shows a message instead of crashing.

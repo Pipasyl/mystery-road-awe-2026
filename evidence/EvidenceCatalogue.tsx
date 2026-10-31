@@ -1,11 +1,11 @@
-import { useEffect, useReducer, useState } from "react"; // CHANGED: + useEffect, useState
+import { useReducer } from "react"; // CHANGED: useEffect and useState are no longer needed
+import { getEvidence, getLocations, getPeople } from "../backendApi"; // NEW: the API layer
+import { useFetch } from "../components/useFetch"; // NEW: replaces the 3 state boxes + the effect
 import ViewSection from "../components/ViewSection";
-import type { CaseLocation, Evidence, Person } from "../types"; // CHANGED: types instead of state.ts
 import { evidenceMentionsPerson } from "../utils";
 import { EvidenceGrid } from "./EvidenceGrid";
 import { FilterToolbar } from "./FilterToolbar";
 import { filterReducer, initialFilterState } from "./filterReducer";
-// CHANGED: the import from "../state" is gone.
 
 // CHANGED: only the note callback is left. The bookmarks now come through Context.
 interface EvidenceCatalogueProps {
@@ -13,27 +13,13 @@ interface EvidenceCatalogueProps {
 }
 
 export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
-  // NEW: 3 boxes for the data. They start empty because the backend has not answered yet.
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
-  const [locations, setLocations] = useState<CaseLocation[]>([]);
-
-  // NEW: runs once after the first draw ([]). Promise.all sends the 3 requests at the
-  // same time and waits until all 3 have answered.
-  useEffect(() => {
-    async function load() {
-      const [e, p, l] = await Promise.all([
-        fetch("/api/evidence").then((res) => res.json() as Promise<Evidence[]>),
-        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
-        fetch("/api/locations").then((res) => res.json() as Promise<CaseLocation[]>),
-      ]);
-      // Saving into state makes React draw the page again, now with data.
-      setEvidence(e);
-      setPeople(p);
-      setLocations(l);
-    }
-    void load();
-  }, []);
+  // CHANGED: 3 hook calls. `?? []` = an empty list until the answer arrives, like before.
+  const { data: evidenceRaw } = useFetch(getEvidence);
+  const { data: peopleRaw } = useFetch(getPeople);
+  const { data: locationsRaw } = useFetch(getLocations);
+  const evidence = evidenceRaw ?? [];
+  const people = peopleRaw ?? [];
+  const locations = locationsRaw ?? [];
 
   // ONE useReducer for all 7 filter/sort values.
   const [filters, dispatch] = useReducer(filterReducer, initialFilterState);
@@ -58,7 +44,7 @@ export function EvidenceCatalogue({ onAddNote }: EvidenceCatalogueProps) {
       (filters.relevance === "" || ev.relevance === filters.relevance),
   );
 
-  // Step 2: sort. We sort `filtered` (a copy), never the list in state.
+  // Step 2: sort. We sort `filtered` (a copy), never the list from the hook.
   const visibleEvidence = filtered.sort((a, b) => {
     if (filters.sort === "title-asc") return a.title.localeCompare(b.title);
     if (filters.sort === "title-desc") return b.title.localeCompare(a.title);

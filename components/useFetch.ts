@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 // The 3 situations of a request (same idea as in Demo 6).
 export type FetchStatus = "loading" | "error" | "success";
 
-// THEORY: a custom hook is a function whose name starts with "use" and that calls
-// other hooks (useState, useEffect) inside. <T> = "the kind of data we expect",
-// so every page gets the right type back (Person[], Evidence[], ...).
-export function useFetch<T>(url: string) {
+// CHANGED: the input is a FUNCTION from backendApi.ts (for example getPeople), not a URL.
+// The hook no longer knows any address. <T> is worked out from the function,
+// so the call sites do not need to write the type any more.
+export function useFetch<T>(fetcher: (signal: AbortSignal) => Promise<T>) {
   const [data, setData] = useState<T | null>(null); // null = nothing arrived yet
   const [status, setStatus] = useState<FetchStatus>("loading");
 
@@ -16,15 +16,13 @@ export function useFetch<T>(url: string) {
 
     async function load() {
       try {
-        const res = await fetch(url, { signal: controller.signal });
-        // Demo 6: fetch does NOT throw for a 500, so we check res.ok ourselves.
-        if (!res.ok) throw new Error(`Server answered ${res.status}`);
-        setData((await res.json()) as T);
+        // CHANGED: we call the API function and hand it the signal.
+        setData(await fetcher(controller.signal));
         setStatus("success");
       } catch (err) {
         // A cancelled request is not a real error: ignore it quietly.
         if (err instanceof DOMException && err.name === "AbortError") return;
-        console.error(`Could not load ${url}`, err);
+        console.error("Could not load data", err);
         setStatus("error"); // the error path ALSO sets the status
       }
     }
@@ -32,8 +30,7 @@ export function useFetch<T>(url: string) {
 
     // Demo 7: cleanup cancels the request that is still waiting.
     return () => controller.abort();
-  }, [url]); // runs again if the address changes
+  }, [fetcher]); // the API functions never change, so this still runs once
 
-  // The page gets the data and the status back and decides what to draw.
   return { data, status };
 }

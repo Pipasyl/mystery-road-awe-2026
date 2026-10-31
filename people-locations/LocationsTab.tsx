@@ -1,14 +1,13 @@
+import { getLocations } from "../backendApi"; // NEW: the API layer
 import EmptyState from "../components/EmptyState";
-import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect
-import type { CaseLocation } from "../types";
+import { useFetch } from "../components/useFetch";
 import LocationsList from "./LocationsList";
 
-// FEATURE component: the content of the /team/locations route.
+// FEATURE component: the content of the /team/locations route. UI only: no fetch, no URL.
 export default function LocationsTab() {
-  // NEW: ONE line instead of about 20. The hook does the fetching, the status and the cancel.
-  const { data: locations, status } = useFetch<CaseLocation[]>("/api/locations");
+  // CHANGED: we pass the API function. No address and no type written here any more.
+  const { data: locations, status } = useFetch(getLocations);
 
-  // These 3 stay HERE, because what to show is specific to this page.
   if (status === "loading") return <p>⏳ Loading locations…</p>;
 
   if (status === "error")
@@ -18,7 +17,6 @@ export default function LocationsTab() {
       </p>
     );
 
-  // success + empty list = "no data". `!locations` only calms TypeScript (data starts as null).
   if (!locations || locations.length === 0) return <EmptyState message="No locations to show." />;
 
   return <LocationsList locations={locations} />;

@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react"; // CHANGED: + useEffect, useState
+import { getEvidence } from "../backendApi"; // NEW: the API layer
 import { useBookmarks } from "../components/BookmarkContext";
+import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect
 import ViewSection from "../components/ViewSection";
-import type { Evidence } from "../types"; // CHANGED: type instead of state.ts
 import { HypothesisForm } from "./HypothesisForm";
 import type { Note } from "./Note";
-// CHANGED: the import from "../state" is gone.
 
 type WorkspacePageProps = {
   notes: Note[];
@@ -13,17 +12,10 @@ type WorkspacePageProps = {
 export function WorkspacePage({ notes }: WorkspacePageProps) {
   const { bookmarkedIds } = useBookmarks();
 
-  // NEW: a box for the evidence, empty until the backend answers.
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-
-  // NEW: runs once after the first draw ([]). It asks the backend for the evidence.
-  useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/evidence");
-      setEvidence((await res.json()) as Evidence[]); // saving in state = React draws again
-    }
-    void load();
-  }, []);
+  // CHANGED: one hook call replaces the state box and the effect.
+  // `?? []` = an empty list until the answer arrives, like before.
+  const { data } = useFetch(getEvidence);
+  const evidence = data ?? [];
 
   // Bookmarked items = full evidence list filtered by the bookmark ids
   const bookmarkedEvidence = evidence.filter((ev) => bookmarkedIds.includes(ev.id));

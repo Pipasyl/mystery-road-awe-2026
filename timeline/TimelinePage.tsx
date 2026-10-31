@@ -1,39 +1,26 @@
-import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
+import { getLocations, getPeople, getTimeline } from "../backendApi"; // NEW: the API layer
+import { useFetch } from "../components/useFetch"; // NEW: replaces useState + useEffect
 import ViewSection from "../components/ViewSection";
-import type { CaseLocation, Person, TimelineEvent } from "../types"; // CHANGED: more types
 import TimelineFilters from "./TimelineFilters";
 import TimelineList from "./TimelineList";
-// CHANGED: the import from "../state" is gone, this page reads only from the backend now.
 
-// FEATURE component: the whole Timeline page.
+// FEATURE component: the whole Timeline page. UI only: no fetch, no URL.
 export default function TimelinePage() {
   const [searchParams] = useSearchParams();
   const personId = searchParams.get("person") ?? "";
 
-  // 3 state boxes, all empty at first because the backend has not answered yet.
-  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [people, setPeople] = useState<Person[]>([]); // NEW
-  const [locations, setLocations] = useState<CaseLocation[]>([]); // NEW
+  // CHANGED: 3 hook calls instead of 3 state boxes + an effect with Promise.all.
+  // `data` is null until the answer arrives, so `?? []` keeps the old behaviour:
+  // an empty list at first, the real list after.
+  const { data: timelineData } = useFetch(getTimeline);
+  const { data: peopleData } = useFetch(getPeople);
+  const { data: locationsData } = useFetch(getLocations);
+  const timeline = timelineData ?? [];
+  const people = peopleData ?? [];
+  const locations = locationsData ?? [];
 
-  // Runs once after the first draw. Promise.all sends the 3 requests at the same
-  // time and waits until all 3 have answered.
-  useEffect(() => {
-    async function load() {
-      const [t, p, l] = await Promise.all([
-        fetch("/api/timeline").then((res) => res.json() as Promise<TimelineEvent[]>),
-        fetch("/api/people").then((res) => res.json() as Promise<Person[]>),
-        fetch("/api/locations").then((res) => res.json() as Promise<CaseLocation[]>),
-      ]);
-      // Saving into state makes React draw the page again, now with data.
-      setTimeline(t);
-      setPeople(p);
-      setLocations(l);
-    }
-    void load();
-  }, []);
-
-  // Oldest first. .slice() makes a COPY, so the state list is never reordered.
+  // Oldest first. .slice() makes a COPY, so the list from the hook is never reordered.
   const allEvents = timeline
     .slice()
     .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
