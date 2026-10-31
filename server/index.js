@@ -11,30 +11,36 @@ const PORT = 3001;
 // Where the JSON files live: public/data (one folder up from /server).
 const here = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(here, "..", "public", "data");
-// THEORY: middleware = a small function that sees EVERY request before the route does.
-// It can wait, block, or let the request through with next().
-// We use it to fake a slow or broken server, controlled by the address:
-//   /api/people?delay=3000  -> answer after 3000 ms
-//   /api/people?error=true  -> answer with an error (status 500)
+
+// Middleware = sees EVERY request before the route does. Test switches in the address:
+//   ?delay=3000  -> answer after 3000 ms
+//   ?error=true  -> answer with an error (status 500)
+//   ?empty=true  -> NEW: answer successfully, but with an empty list
 app.use("/api", (req, res, next) => {
-  const delay = Number(req.query.delay) || 0; // no ?delay -> 0 ms, so no waiting
+  const delay = Number(req.query.delay) || 0;
   const shouldFail = req.query.error === "true";
+  const shouldBeEmpty = req.query.empty === "true"; // NEW
 
   setTimeout(() => {
     if (shouldFail) {
       res.status(500).json({ error: "Fake error on purpose" });
-      return; // stop here, the real route never runs
+      return;
+    }
+    // NEW: status 200 (success) but nothing inside. This is the "empty" case.
+    if (shouldBeEmpty) {
+      res.json([]);
+      return;
     }
     next(); // go on to the real route (the one that reads the JSON file)
   }, delay);
 });
-// Helper: builds one GET route from a file name.
-// Example: makeRoute("people") -> GET /api/people sends public/data/people.json
+
+// Builds one GET route from a file name.
 function makeRoute(name) {
   app.get(`/api/${name}`, async (req, res) => {
     try {
       const text = await readFile(path.join(DATA_DIR, `${name}.json`), "utf-8");
-      res.json(JSON.parse(text)); // parse first, so a broken file gives an error here
+      res.json(JSON.parse(text));
     } catch (err) {
       console.error(`Could not read ${name}.json`, err);
       res.status(500).json({ error: `Could not read ${name}` });
@@ -42,10 +48,8 @@ function makeRoute(name) {
   });
 }
 
-// One route per file the app already loads in api.ts.
 ["case", "people", "locations", "evidence", "timeline"].forEach(makeRoute);
 
-// Kept from Task 1.
 app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
